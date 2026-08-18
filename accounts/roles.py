@@ -1,0 +1,8 @@
+INTERNAL_ROLE_NAMES = (
+    "SUPPORT",
+    "VERIFICATION",
+    "FINANCE",
+    "MODERATION",
+    "ADMIN",
+    "SUPER_ADMIN",
+)

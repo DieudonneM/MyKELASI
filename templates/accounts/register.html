@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Inscription | MyKELASI{% endblock %}
+{% block content %}
+<section class="auth-panel">
+    <h1>Créer un compte</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="primary" type="submit">S'inscrire</button>
+    </form>
+    <p class="actions"><a href="{% url 'accounts:login' %}">J'ai déjà un compte</a></p>
+</section>
+{% endblock %}
