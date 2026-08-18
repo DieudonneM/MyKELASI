@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+media/
+staticfiles/
+.vscode/
+.idea/
+MyKELASI_2_0_Document_Optimise.pdf
+PLAN_ACTION_WEB_DJANGO_MYKELASI.txt

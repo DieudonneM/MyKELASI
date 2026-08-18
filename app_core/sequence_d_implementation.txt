@@ -1,0 +1,410 @@
+SÉQUENCE 1 - DÉCISIONS STRUCTURANTES
+====================================
+
+Statut : PROPOSITION À VALIDER
+Date : 18 août 2026
+Portée : cadrage fonctionnel uniquement, aucune modification du code
+
+
+1. IDENTITÉ UTILISATEUR
+-----------------------
+
+Décision proposée :
+
+- l'adresse email est l'identifiant principal et doit être unique ;
+- le téléphone est obligatoire pour les enseignants et facultatif au départ
+	pour les apprenants ;
+- le téléphone est enregistré au format international, par exemple +243... ;
+- email et téléphone possèdent chacun un statut de vérification distinct ;
+- le numéro de téléphone n'est jamais affiché publiquement ;
+- la connexion par téléphone pourra être ajoutée plus tard sans remplacer
+	l'identifiant interne de l'utilisateur.
+
+Justification : l'email simplifie l'administration Web, la récupération de
+compte et les communications. Le téléphone reste essentiel pour la confiance,
+les rappels et les futurs paiements Mobile Money.
+
+
+2. RÔLES V1
+------------
+
+Rôles publics proposés :
+
+- APPRENANT : recherche, demande, réservation, paiement et avis ;
+- ENSEIGNANT : profil, propositions, réservations, sessions et revenus.
+
+Un même compte ne possède qu'un rôle public principal en V1. Le changement de
+rôle nécessite une action explicite afin d'éviter des permissions ambiguës.
+
+Rôles internes proposés :
+
+- SUPPORT : comptes, demandes et réservations, sans document ni donnée finance ;
+- VÉRIFICATION : identité et justificatifs professionnels uniquement ;
+- FINANCE : paiements, remboursements, versements et litiges financiers ;
+- MODÉRATION : profils et contenus signalés ;
+- ADMIN : paramétrage fonctionnel et attribution contrôlée des permissions ;
+- SUPER ADMIN : accès exceptionnel, protégé par MFA et journalisé.
+
+Principe retenu : moindre privilège et aucun accès interne global par défaut.
+
+
+3. PÉRIMÈTRE ÉDUCATIF V1
+------------------------
+
+Niveaux proposés :
+
+- primaire ;
+- secondaire ;
+- humanités ;
+- supérieur/universitaire ;
+- professionnel et préparation aux certifications.
+
+Catalogue initial de matières proposé :
+
+- mathématiques ;
+- français ;
+- anglais ;
+- physique ;
+- chimie ;
+- biologie/sciences ;
+- informatique et bureautique ;
+- programmation ;
+- comptabilité et gestion ;
+- statistiques et méthodologie de recherche.
+
+Le catalogue sera administrable en base de données : cette liste pourra donc
+être corrigée sans migration ni changement du code.
+
+Modes d'enseignement proposés :
+
+- EN_LIGNE ;
+- À_DOMICILE ;
+- LIEU_PUBLIC ;
+- CENTRE_DE_FORMATION.
+
+Pour le domicile, aucune adresse précise n'est publiée. Elle n'est communiquée
+qu'aux participants d'une réservation confirmée, au moment approprié.
+
+
+4. ZONES GÉOGRAPHIQUES
+----------------------
+
+Décision proposée : utiliser les communes de Kinshasa comme zones publiques V1.
+
+Liste initiale : Bandalungwa, Barumbu, Bumbu, Gombe, Kalamu, Kasa-Vubu,
+Kimbanseke, Kinshasa, Kintambo, Kisenso, Lemba, Limete, Lingwala, Makala,
+Maluku, Masina, Matete, Mont-Ngafula, Ndjili, Ngaba, Ngaliema, Ngiri-Ngiri,
+Nsele et Selembao.
+
+Règles proposées :
+
+- l'enseignant choisit une ou plusieurs communes d'intervention ;
+- le public voit la commune ou une distance approximative, jamais le GPS exact ;
+- aucune adresse personnelle n'entre dans le score public de matching ;
+- PostGIS est reporté jusqu'à l'apparition d'un besoin de calcul géographique
+	plus précis que la commune.
+
+
+5. DEVISE ET AFFICHAGE DES PRIX
+-------------------------------
+
+Décision proposée :
+
+- devise transactionnelle V1 : CDF ;
+- tous les montants sont stockés en unité entière ou avec Decimal, jamais float ;
+- le prix et le reçu indiquent toujours explicitement la devise ;
+- l'USD peut être affiché comme information secondaire plus tard ;
+- aucune conversion automatique n'est réalisée avant définition d'une source
+	officielle de taux et d'une politique d'arrondi.
+
+
+6. RÈGLES MINIMALES DE RÉSERVATION
+----------------------------------
+
+Décisions proposées :
+
+- une réservation provient d'une proposition acceptée ou d'un créneau publié ;
+- elle contient enseignant, apprenant, date, heure, durée, mode, zone et prix ;
+- l'enseignant confirme la réservation avant paiement en V1 ;
+- un créneau confirmé ne peut pas être réservé une deuxième fois ;
+- les changements d'état sont enregistrés avec date, auteur et motif ;
+- les coordonnées privées ne sont révélées qu'après confirmation ;
+- seuls les participants et le personnel explicitement habilité y accèdent.
+
+États de réservation retenus :
+
+- PENDING : en attente de confirmation ;
+- CONFIRMED : acceptée par l'enseignant ;
+- CANCELLED : annulée avant réalisation ;
+- COMPLETED : session effectivement terminée ;
+- NO_SHOW : absence constatée ;
+- DISPUTED : contestation ouverte.
+
+
+7. ANNULATION, REMBOURSEMENT ET LITIGE
+--------------------------------------
+
+Politique pilote proposée :
+
+- annulation gratuite par l'apprenant au moins 24 heures avant la session ;
+- à moins de 24 heures, remboursement soumis à validation manuelle ;
+- annulation par l'enseignant : remboursement intégral de l'apprenant ;
+- absence de l'enseignant : remboursement intégral et impact de fiabilité ;
+- absence de l'apprenant : aucun remboursement automatique ;
+- incident technique d'une session en ligne : examen manuel ;
+- tout litige financier est traité manuellement pendant le pilote ;
+- aucune pénalité automatique n'est appliquée avant mesure de cas réels.
+
+Cette politique doit rester configurable et visible avant la confirmation.
+
+
+8. COMMISSION ET PAIEMENT
+-------------------------
+
+Décision proposée :
+
+- commission pilote : 10 % du prix de la session terminée ;
+- la valeur reste configurable dans l'administration ;
+- le calcul est figé dans la réservation afin qu'un changement futur ne modifie
+	pas les transactions existantes ;
+- Mobile Money est le canal prioritaire ;
+- aucun prestataire n'est techniquement choisi dans cette séquence ;
+- l'intégration commencera uniquement après réception d'une documentation
+	sandbox, des règles de signature webhook et des devises supportées.
+
+Prestataire Mobile Money : DÉCISION EN ATTENTE.
+
+
+9. DOCUMENTS ET VÉRIFICATION
+----------------------------
+
+Documents proposés pour l'identité :
+
+- carte d'électeur ou carte nationale d'identité valide ;
+- passeport valide ;
+- permis de conduire valide, si accepté par la politique de vérification.
+
+Documents professionnels proposés :
+
+- diplôme ;
+- relevé ou attestation académique ;
+- certificat professionnel ;
+- attestation d'emploi ou d'expérience pertinente.
+
+Règles proposées :
+
+- formats acceptés : PDF, JPEG et PNG ;
+- taille maximale initiale : 10 Mo par fichier ;
+- stockage privé et URL temporaire uniquement ;
+- vérification humaine en V1 ;
+- statuts : PENDING, APPROVED, REJECTED et EXPIRED ;
+- refus obligatoirement motivé dans l'espace privé de l'utilisateur ;
+- le public voit seulement le type et le statut de vérification ;
+- aucune copie du document n'est servie depuis un dossier public ;
+- conservation et suppression doivent être définies avant la production.
+
+
+10. INTÉGRITÉ ACADÉMIQUE
+------------------------
+
+Services autorisés : tutorat méthodologique, correction avec retour pédagogique,
+aide statistique, préparation de soutenance et accompagnement à la recherche.
+
+Services interdits : rédaction complète à la place de l'étudiant, fabrication
+de résultats, falsification de données, plagiat et contournement des règles
+académiques.
+
+Les demandes et propositions devront accepter cette règle et pourront être
+signalées puis retirées par la modération.
+
+
+11. CRITÈRES DU PILOTE KINSHASA
+-------------------------------
+
+Seuils proposés avant décision d'expansion :
+
+- 30 enseignants dont le profil est complet ;
+- 100 apprenants inscrits ;
+- 50 demandes qualifiées ;
+- 20 sessions effectivement terminées ;
+- au moins 70 % des demandes reçoivent une proposition pertinente ;
+- au moins 60 % des réservations confirmées deviennent des sessions terminées ;
+- au moins 25 % des apprenants ayant terminé une session réservent à nouveau ;
+- note moyenne minimale de 4/5 ;
+- taux de litige inférieur à 5 %.
+
+Ces nombres sont des objectifs de test, pas des résultats acquis.
+
+
+12. DÉCISIONS REPORTÉES
+-----------------------
+
+- prestataire Mobile Money précis ;
+- taux de conversion CDF/USD ;
+- automatisation des versements enseignants ;
+- géolocalisation PostGIS détaillée ;
+- abonnements Pro/Premium ;
+- catégories B2B ;
+- intégration WhatsApp ;
+- application Flutter ;
+- machine learning et placements sponsorisés.
+
+
+13. GRILLE DE VALIDATION DU PORTEUR DE PROJET
+---------------------------------------------
+
+Remplacer [ ] par [X] pour approuver. Ajouter une correction sous le point
+concerné lorsqu'une proposition doit être modifiée.
+
+[ ] Email comme identifiant principal, téléphone complémentaire.
+[ ] Rôles publics et internes proposés.
+[ ] Niveaux, matières et modes d'enseignement proposés.
+[ ] Communes de Kinshasa comme zones publiques V1.
+[ ] CDF comme devise transactionnelle V1.
+[ ] États et règles minimales de réservation.
+[ ] Politique pilote d'annulation et remboursement.
+[ ] Commission pilote configurable de 10 %.
+[ ] Documents acceptés et vérification humaine.
+[ ] Règles d'intégrité académique.
+[ ] Critères de réussite du pilote Kinshasa.
+[ ] Liste des décisions reportées.
+
+Choix restant obligatoire avant la séquence Paiement :
+
+Prestataire Mobile Money retenu : __________________________________________
+
+Décision finale :
+
+[ ] SÉQUENCE 1 VALIDÉE - autorisation de commencer la séquence 2.
+[ ] SÉQUENCE 1 À CORRIGER - ne pas commencer la séquence 2.
+
+
+==========================================================================
+PLAN GÉNÉRAL DES SÉQUENCES - RAPPEL
+==========================================================================
+
+Je répartirais le développement en **séquences courtes**, chacune produisant un résultat testable avant de poursuivre.
+
+**Séquence 1 — Décisions structurantes**
+- Choisir l’identifiant principal : email recommandé, téléphone complémentaire.
+- Confirmer rôles, devise, zones et modes d’enseignement.
+- Définir les règles minimales de réservation et d’annulation.
+- Valider les documents acceptés.
+
+**Livrable :** décisions consignées et validées.
+
+**Séquence 2 — Sécurisation du projet**
+- Variables d’environnement et suppression des secrets du code.
+- Réglages développement/test/production.
+- Dépendances, PostgreSQL, langue et fuseau.
+- `health/`, lint, tests et CI minimale.
+
+**Validation :** installation propre, `django check` et tests réussis.
+
+**Séquence 3 — Utilisateurs**
+- Application `accounts`.
+- Modèle `User` personnalisé.
+- Rôles et permissions.
+- Migration initiale.
+- Tests d’isolation entre comptes.
+
+**Validation :** création des différents types d’utilisateurs depuis l’administration.
+
+**Séquence 4 — Authentification Web**
+- Inscription.
+- Connexion et déconnexion.
+- Réinitialisation du mot de passe.
+- Vérification email ou téléphone.
+- Pages responsives et endpoints API.
+
+**Validation :** parcours complet d’inscription et de connexion.
+
+**Séquence 5 — Profils**
+- Applications `profiles` et `verification`.
+- Profils apprenant et enseignant.
+- Matières, niveaux, tarifs et zones.
+- Onboarding enseignant.
+- Page publique d’un enseignant.
+
+**Validation :** un enseignant peut publier un profil consultable.
+
+**Séquence 6 — Recherche**
+- Liste des enseignants.
+- Filtres matière, niveau, zone, mode et budget.
+- Pagination et tri.
+- Présentation mobile des résultats.
+
+**Validation :** un apprenant trouve et compare plusieurs enseignants.
+
+**Séquence 7 — Demandes et matching**
+- Création d’une demande d’apprentissage.
+- Matching explicable.
+- Présentation de 3 à 5 profils.
+- Propositions des enseignants.
+- Permissions objet.
+
+**Validation :** une demande produit des résultats pertinents et expliqués.
+
+**Séquence 8 — Réservation**
+- Création d’un booking.
+- Confirmation ou refus.
+- Contrôle des conflits horaires.
+- Annulation.
+- Tableaux de bord apprenant et enseignant.
+
+**Validation :** réservation complète sans double créneau.
+
+**Séquence 9 — Session et messagerie**
+- Conversation privée.
+- Messages et signalements.
+- Présence, no-show et fin de session.
+- Journalisation des changements.
+
+**Validation :** les participants communiquent et terminent une session.
+
+**Séquence 10 — Avis et confiance**
+- Avis uniquement après session terminée.
+- Modération des avis.
+- Première version du Trust Score.
+- Explication des indicateurs.
+
+**Validation :** aucun avis ne peut être créé sans transaction réelle.
+
+**Séquence 11 — Paiement**
+- Prestataire sandbox.
+- Paiement idempotent.
+- Webhooks signés.
+- Ledger et reçus.
+- Remboursement contrôlé.
+
+**Validation :** scénario complet paiement, échec, répétition du webhook et remboursement.
+
+**Séquence 12 — PWA et notifications**
+- Emails transactionnels.
+- Notifications internes.
+- Manifest et service worker.
+- Expérience hors ligne limitée.
+- Optimisation mobile.
+
+**Validation :** application installable et parcours mobile fonctionnel.
+
+**Séquence 13 — Exploitation et production**
+- Interfaces internes par rôle.
+- Audit et analytics.
+- Tests de sécurité.
+- Staging, sauvegardes et restauration.
+- Déploiement progressif.
+
+**Rythme recommandé**
+
+Chaque séquence devrait durer environ **2 à 5 jours**, puis suivre ce cycle :
+
+1. Définition des critères d’acceptation.
+2. Modèles et migrations.
+3. Services et permissions.
+4. API et interface Web.
+5. Tests automatisés.
+6. Démonstration.
+7. Validation avant la séquence suivante.
+
+Le meilleur point de départ concret est donc : **Séquences 1 à 3 uniquement**, avec arrêt obligatoire après la migration du modèle utilisateur pour validation.

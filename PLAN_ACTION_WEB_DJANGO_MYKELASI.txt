@@ -1,0 +1,445 @@
+PLAN D'ACTION WEB DJANGO - MyKELASI 2.0
+========================================
+
+Version du plan : 1.0
+Statut : À VALIDER AVANT IMPLÉMENTATION
+Périmètre : Web responsive/PWA + API Django/DRF
+Approche : monolithe modulaire, livraison par petites étapes validables
+
+
+1. OBJECTIF DU PRODUIT WEB
+--------------------------
+
+Construire la première plateforme transactionnelle MyKELASI permettant à un
+apprenant de trouver un enseignant fiable, comparer les profils, exprimer un
+besoin, recevoir des propositions, réserver, payer, réaliser une session puis
+laisser un avis transactionnel.
+
+Parcours principal à livrer :
+
+Besoin -> Matching -> Comparaison -> Réservation -> Paiement -> Session
+-> Avis -> Réachat
+
+Priorité produit : prouver la liquidité à Kinshasa et mesurer le nombre de
+sessions réellement réalisées. L'application Flutter, le machine learning et
+le B2B avancé ne font pas partie du premier MVP Web.
+
+
+2. ÉTAT ACTUEL DU PROJET
+------------------------
+
+Le dépôt contient actuellement :
+
+- un squelette Django 6.1 ;
+- Python 3.14.6 déclaré dans .python-version ;
+- le projet app_core et la route d'administration Django ;
+- PostgreSQL configuré localement ;
+- aucune application métier ;
+- aucun modèle métier, formulaire, template, fichier statique ou test ;
+- aucune API Django REST Framework ;
+- aucune authentification personnalisée ;
+- aucune configuration PWA, Celery, Redis ou stockage objet ;
+- Django est la seule dépendance applicative déclarée.
+
+Points à corriger avant toute fonctionnalité :
+
+- SECRET_KEY et mot de passe PostgreSQL sont écrits en clair ;
+- DEBUG est actif et ALLOWED_HOSTS est vide ;
+- la configuration n'est pas séparée entre développement et production ;
+- psycopg2-binary a été installé localement mais n'est pas dans requirements.txt ;
+- langue et fuseau sont encore en-us et UTC ;
+- MAILERS n'est pas le réglage Django standard EMAIL_BACKEND ;
+- aucun fichier .env.example ni politique de secrets n'est présent.
+
+
+3. PRINCIPES D'ARCHITECTURE À RESPECTER
+---------------------------------------
+
+1. Construire un monolithe modulaire Django, pas des microservices.
+2. Utiliser des applications métier séparées et à responsabilité claire.
+3. Garder les règles métier dans des services, pas uniquement dans les vues.
+4. Exposer une API versionnée sous /api/v1/ pour le Web et les futurs canaux.
+5. Rendre le Web avec Django Templates pour livrer rapidement et rester SEO-ready.
+6. Utiliser une authentification Web par session et une API sécurisée par jetons.
+7. Vérifier les permissions au niveau de chaque objet et de son propriétaire.
+8. Ne jamais exposer les documents sensibles ni les coordonnées GPS exactes.
+9. Séparer le classement organique des placements sponsorisés.
+10. N'introduire Redis, Celery, PostGIS ou un moteur externe que lorsque leur
+    usage concret arrive dans le parcours.
+
+Applications Django proposées :
+
+- accounts       : utilisateur, rôles, connexion, consentements ;
+- profiles       : profils apprenant et enseignant, matières, disponibilités ;
+- verification   : identité et justificatifs professionnels ;
+- learning       : demandes d'apprentissage, propositions et matching ;
+- bookings       : réservation, session, présence, annulation ;
+- payments       : paiements, remboursements, ledger et versements ;
+- messaging      : conversations, messages et signalements ;
+- reviews        : avis transactionnels et Trust Score ;
+- notifications  : notifications Web, email et préférences ;
+- moderation     : reports, disputes et traitement interne ;
+- analytics      : événements métier et KPI ;
+- common         : utilitaires transversaux limités et abstractions de base.
+
+
+4. PLAN D'ACTION PAR PARTIES ET PETITES ÉTAPES
+----------------------------------------------
+
+PARTIE 0 - CADRAGE FONCTIONNEL ET DÉCISIONS
+
+Objectif : figer les choix indispensables sans bloquer le MVP.
+
+0.1 Valider les rôles V1 : apprenant, enseignant, support, vérification,
+    finance, modération et administrateur.
+0.2 Valider les matières, niveaux scolaires et modes : en ligne, domicile,
+    lieu public ou centre.
+0.3 Définir les communes/zones de Kinshasa utilisables sans GPS public exact.
+0.4 Valider la devise V1, probablement CDF avec affichage USD si nécessaire.
+0.5 Choisir le prestataire Mobile Money et obtenir sa documentation sandbox.
+0.6 Définir les règles de commission, annulation, remboursement et litige.
+0.7 Définir les documents acceptés et le processus de vérification humaine.
+0.8 Définir les données interdites dans les offres liées aux TFC et mémoires.
+0.9 Écrire les critères de réussite de la phase pilote : enseignants actifs,
+    demandes qualifiées, réservations, sessions terminées et réachat.
+
+Validation de la partie 0 : décisions métier écrites et approuvées.
+
+
+PARTIE 1 - FONDATIONS TECHNIQUES ET SÉCURITÉ
+
+Objectif : obtenir un projet reproductible, testable et sans secret versionné.
+
+1.1 Créer une branche de travail et un .gitignore adapté à Python/Django.
+1.2 Déplacer SECRET_KEY, DEBUG, hôtes et accès PostgreSQL dans l'environnement.
+1.3 Ajouter .env.example sans valeur secrète.
+1.4 Séparer les réglages base, développement, test et production.
+1.5 Compléter requirements.txt : DRF, pilote PostgreSQL, gestion .env,
+    Pillow, filtrage API et outils de test.
+1.6 Configurer fr-CD ou fr-fr, Africa/Kinshasa, fichiers static et media.
+1.7 Corriger l'email de développement avec EMAIL_BACKEND.
+1.8 Installer et configurer Django REST Framework sous /api/v1/.
+1.9 Configurer CORS uniquement si un client séparé est réellement utilisé.
+1.10 Ajouter un endpoint /health/ ne révélant aucune donnée sensible.
+1.11 Ajouter formatage, lint, tests pytest-django et rapport de couverture.
+1.12 Créer une CI minimale : installation, migration, django check et tests.
+
+Tests d'acceptation :
+
+- installation neuve possible depuis requirements.txt ;
+- migrations exécutables sur une base de test ;
+- python manage.py check sans erreur ;
+- aucun secret réel dans le dépôt ;
+- /health/ répond et l'administration reste accessible.
+
+
+PARTIE 2 - IDENTITÉ, AUTHENTIFICATION ET AUTORISATIONS
+
+Objectif : créer une identité unique avant toute migration métier importante.
+
+2.1 Créer un modèle User personnalisé basé sur AbstractUser.
+2.2 Choisir l'email ou le téléphone comme identifiant principal.
+2.3 Ajouter rôle, téléphone vérifié, statut du compte et dates d'audit.
+2.4 Configurer AUTH_USER_MODEL avant les modèles métier.
+2.5 Créer inscription, connexion, déconnexion et récupération de mot de passe.
+2.6 Ajouter vérification email/téléphone avec code haché, expiration et essais.
+2.7 Appliquer limitation de débit sur connexion, inscription et OTP.
+2.8 Créer les groupes et permissions internes selon le moindre privilège.
+2.9 Ajouter consentement aux conditions et préférences de communication.
+2.10 Créer pages Web et endpoints API avec erreurs génériques sécurisées.
+2.11 Tester accès anonyme, apprenant, enseignant et personnel interne.
+
+Tests d'acceptation : un utilisateur s'inscrit, vérifie son contact, se connecte
+et ne peut jamais lire ou modifier le compte d'un autre utilisateur.
+
+
+PARTIE 3 - PROFILS, CATALOGUE ET VÉRIFICATION
+
+Objectif : constituer une offre d'enseignants consultable et crédible.
+
+3.1 Créer LearnerProfile et TeacherProfile liés au User.
+3.2 Créer Subject, Level, TeachingMode, ServiceArea et tarifs.
+3.3 Ajouter bio, expérience, langues, modalités et disponibilité simple.
+3.4 Créer un assistant d'onboarding enseignant par étapes.
+3.5 Calculer et afficher le pourcentage de complétion du profil.
+3.6 Créer les pages publiques SEO des enseignants avec URL stable.
+3.7 Ne montrer qu'une zone approximative, jamais une adresse ou position exacte.
+3.8 Créer IdentityVerification et ProfessionalCredential.
+3.9 Stocker les justificatifs dans un espace privé, hors MEDIA public.
+3.10 Valider extension, taille et type MIME réel avant acceptation.
+3.11 Créer une file interne de revue : pending, approved, rejected, expired.
+3.12 Journaliser tout accès interne à un document sensible.
+3.13 Afficher séparément téléphone vérifié, identité vérifiée et diplôme validé.
+
+Tests d'acceptation : un enseignant complète son profil, transmet un justificatif,
+un vérificateur autorisé le traite et le public ne peut jamais ouvrir le fichier.
+
+
+PARTIE 4 - RECHERCHE, DEMANDES ET MATCHING EXPLICABLE
+
+Objectif : transformer un besoin réel en 3 à 5 résultats pertinents.
+
+4.1 Créer LearningRequest : matière, niveau, mode, zone, budget, créneau,
+    fréquence, description et statut.
+4.2 Créer le formulaire Web court puis le formulaire détaillé.
+4.3 Créer la recherche par matière, niveau, mode, zone et budget.
+4.4 Ajouter pagination, tri pertinent et filtres accessibles sur mobile.
+4.5 Implémenter un score rule-based avec pondérations configurables.
+4.6 Inclure matière, niveau, disponibilité, mode, zone, budget, fiabilité,
+    réputation et taux de réponse dans le calcul.
+4.7 Retourner les raisons du score, pas seulement un pourcentage opaque.
+4.8 Exclure le statut Premium du score organique.
+4.9 Créer Proposal pour permettre à un enseignant de répondre à une demande.
+4.10 Empêcher l'accès aux demandes et propositions sans droit métier.
+4.11 Enregistrer request.created, match.created et proposal.sent.
+
+Tests d'acceptation : une demande produit des correspondances ordonnées et
+expliquées; changer un critère modifie le score de façon prévisible et testée.
+
+
+PARTIE 5 - RÉSERVATION ET RÉALISATION DE SESSION
+
+Objectif : convertir une proposition en session traçable.
+
+5.1 Créer Booking relié à la demande, la proposition et aux deux utilisateurs.
+5.2 Définir une machine d'états explicite : pending, confirmed, cancelled,
+    completed, no_show et disputed.
+5.3 Gérer date, durée, mode, prix convenu, zone et conditions d'annulation.
+5.4 Vérifier les conflits de disponibilité dans une transaction atomique.
+5.5 Autoriser confirmation ou refus par l'enseignant selon les règles choisies.
+5.6 Créer Session séparée pour présence, début, fin et résultat réel.
+5.7 Ajouter actions contrôlées : confirmer, annuler, marquer présent, terminer.
+5.8 Enregistrer auteur, date et raison de chaque changement important.
+5.9 Créer les tableaux de bord apprenant et enseignant.
+5.10 Ajouter rappels email/Web avant la session.
+5.11 Enregistrer booking.created et session.completed.
+
+Tests d'acceptation : réservation sans double créneau, transitions invalides
+refusées, accès réservé aux participants et session terminée mesurable.
+
+
+PARTIE 6 - MESSAGERIE SÉCURISÉE ET SIGNALEMENT
+
+Objectif : permettre l'échange sans exposer le téléphone par défaut.
+
+6.1 Créer Conversation liée à une demande ou une réservation.
+6.2 Créer Message avec auteur, contenu, date et statut de lecture.
+6.3 Autoriser uniquement les participants et le personnel habilité en cas de
+    signalement.
+6.4 Valider et échapper le contenu; interdire les fichiers en V1 si non requis.
+6.5 Ajouter pagination et actualisation simple, sans WebSocket au départ.
+6.6 Ajouter Report pour profil, message, proposition, réservation ou avis.
+6.7 Créer la file de modération et journaliser les actions.
+6.8 Ajouter quotas et limitation de débit contre spam et harcèlement.
+
+Tests d'acceptation : aucun tiers ne lit une conversation et un signalement
+donne un accès temporaire et audité au modérateur autorisé.
+
+
+PARTIE 7 - AVIS TRANSACTIONNELS ET TRUST SCORE
+
+Objectif : construire une réputation fondée sur des transactions réelles.
+
+7.1 Créer Review uniquement pour une Session completed.
+7.2 Garantir un avis par participant et par session selon la règle retenue.
+7.3 Ajouter note, commentaire, ponctualité, communication et qualité.
+7.4 Prévoir modération, masquage motivé et droit de réponse.
+7.5 Calculer le Trust Score dans un service versionné et testable.
+7.6 Intégrer identité, credentials, sessions, présence, réponse, annulations,
+    avis et réachat.
+7.7 Ne jamais permettre une modification manuelle silencieuse du score.
+7.8 Afficher les composantes compréhensibles sans révéler les règles antifraude.
+7.9 Enregistrer review.created et recalculer le score de façon asynchrone si utile.
+
+Tests d'acceptation : aucun faux avis hors transaction; le score évolue de façon
+reproductible à partir des événements réels.
+
+
+PARTIE 8 - PAIEMENT TRANSACTIONNEL
+
+Objectif : sécuriser le paiement sans faire confiance au navigateur.
+
+8.1 Intégrer d'abord le sandbox du prestataire retenu derrière une interface.
+8.2 Créer Payment avec référence unique, montant, devise, fournisseur et état.
+8.3 Utiliser les états pending, success, failed, refunded et disputed.
+8.4 Exiger une clé d'idempotence lors de la création d'un paiement.
+8.5 Créer un endpoint webhook dédié, signé et non authentifié par session.
+8.6 Vérifier signature, référence, montant et devise côté serveur.
+8.7 Rendre le traitement du webhook idempotent et transactionnel.
+8.8 Créer LedgerEntry immuable pour tous les mouvements financiers.
+8.9 Créer Refund, Payout et rapprochement manuel avant automatisation complète.
+8.10 Ajouter reçus consultables par les seuls utilisateurs concernés.
+8.11 Journaliser toutes les actions du personnel finance.
+8.12 Enregistrer payment.completed et calculer GMV et commission.
+
+Tests d'acceptation : doubles webhooks sans double crédit, montant falsifié
+refusé, aucune confirmation depuis le client seul et ledger équilibré.
+
+
+PARTIE 9 - NOTIFICATIONS, PWA ET EXPÉRIENCE MOBILE
+
+Objectif : rendre le Web installable, rapide et utilisable sur mobile limité.
+
+9.1 Créer Notification et préférences par canal.
+9.2 Ajouter notifications pour proposition, booking, rappel, paiement et avis.
+9.3 Préparer les modèles d'email transactionnels en français.
+9.4 Ajouter manifest Web, icônes, couleur de thème et service worker prudent.
+9.5 Mettre en cache uniquement les actifs publics, jamais les données sensibles.
+9.6 Ajouter états hors ligne et erreurs réseau compréhensibles.
+9.7 Optimiser images, CSS, requêtes SQL et chargement des pages principales.
+9.8 Vérifier navigation clavier, contrastes, labels et lecteurs d'écran.
+9.9 Tester petits écrans, connexion lente et navigateurs principaux.
+9.10 Préparer les liens profonds qui pourront être envoyés par WhatsApp.
+
+Tests d'acceptation : installation PWA possible, parcours principal utilisable
+sur mobile et aucune page privée disponible depuis un cache public.
+
+
+PARTIE 10 - ADMINISTRATION, SUPPORT ET GOUVERNANCE
+
+Objectif : exploiter la marketplace avec des accès internes minimaux.
+
+10.1 Adapter Django Admin pour les référentiels non sensibles.
+10.2 Construire des vues internes dédiées pour vérification, modération et finance.
+10.3 Limiter chaque rôle aux champs et actions strictement nécessaires.
+10.4 Exiger MFA pour les administrateurs privilégiés avant production.
+10.5 Créer AuditLog non modifiable pour accès sensibles et actions critiques.
+10.6 Ajouter gestion des disputes et historique de résolution.
+10.7 Ajouter export utilisateur, anonymisation et suppression contrôlée.
+10.8 Définir les durées de conservation par catégorie de données.
+10.9 Créer sauvegardes chiffrées et procédure de restauration testée.
+
+Tests d'acceptation : matrice d'accès testée automatiquement; support, finance,
+vérification et modération ne voient jamais les mêmes données par défaut.
+
+
+PARTIE 11 - ANALYTICS ET TABLEAU DE BORD PRODUIT
+
+Objectif : piloter la marketplace par les sessions réalisées, pas les inscriptions.
+
+11.1 Créer Event avec nom, date, acteur pseudonymisable et contexte minimal.
+11.2 Émettre les événements définis dans le document produit.
+11.3 Éviter toute donnée sensible inutile dans les propriétés analytiques.
+11.4 Calculer demandes, matches, propositions, bookings et sessions terminées.
+11.5 Calculer GMV, take rate, taux d'annulation, no-show et litiges.
+11.6 Calculer conversion demande -> booking et booking -> session terminée.
+11.7 Calculer taux de réponse et repeat booking rate.
+11.8 Créer un tableau de bord interne filtrable par période, matière et zone.
+11.9 Ajouter exports contrôlés pour l'analyse opérationnelle.
+
+Tests d'acceptation : les KPI sont recomposables depuis les données sources et
+le North Star mensuel correspond aux Session réellement completed.
+
+
+PARTIE 12 - QUALITÉ, SÉCURITÉ ET MISE EN PRODUCTION
+
+Objectif : déployer une V1 observable et récupérable en cas d'incident.
+
+12.1 Atteindre une couverture forte sur permissions, paiements et transitions.
+12.2 Ajouter tests unitaires, intégration API et parcours navigateur critiques.
+12.3 Tester IDOR, CSRF, XSS, brute force, upload hostile et webhooks rejoués.
+12.4 Lancer django check --deploy sur les réglages de production.
+12.5 Configurer HTTPS, cookies Secure/HttpOnly/SameSite, HSTS et CSP.
+12.6 Configurer stockage objet privé et URLs temporaires pour documents.
+12.7 Configurer logs structurés sans mots de passe, jetons ni documents.
+12.8 Ajouter Sentry, métriques de santé et alertes utiles.
+12.9 Déployer sur un environnement staging proche de la production.
+12.10 Effectuer recette apprenant, enseignant et opérations internes.
+12.11 Tester sauvegarde, restauration, rollback et rotation des secrets.
+12.12 Déployer progressivement et surveiller erreurs, conversion et paiements.
+
+Tests d'acceptation : recette signée, zéro faille critique connue, restauration
+testée et surveillance active avant ouverture au public.
+
+
+5. ORDRE DE LIVRAISON RECOMMANDÉ
+--------------------------------
+
+Jalon A - Socle démontrable
+Parties 0 à 3 : projet sécurisé, comptes, profils et vérification manuelle.
+
+Jalon B - Validation de la demande
+Partie 4 : recherche, demandes, matching explicable et propositions.
+
+Jalon C - MVP de session
+Parties 5 à 7 : booking, session, messagerie, avis et Trust Score initial.
+
+Jalon D - MVP transactionnel
+Partie 8 : paiement sandbox puis réel, ledger, remboursements et reçus.
+
+Jalon E - Pilote Kinshasa
+Parties 9 à 12 : PWA, opérations, analytics, sécurité et production.
+
+Chaque jalon doit être démontré avec des données de test réalistes et validé
+avant de développer le suivant.
+
+
+6. CE QUI EST VOLONTAIREMENT REPORTÉ APRÈS LE MVP
+--------------------------------------------------
+
+- application Flutter complète ;
+- machine learning et learning-to-rank ;
+- moteur de recherche externe ;
+- microservices ;
+- chat temps réel complexe si l'actualisation simple suffit ;
+- géolocalisation GPS précise et suivi en temps réel ;
+- automatisation complète des payouts avant validation manuelle ;
+- wallet, crédits et abonnements Premium avancés ;
+- placements sponsorisés avant une politique de transparence validée ;
+- portail B2B, cohortes et reporting entreprise complet ;
+- intégration WhatsApp avancée avant stabilisation des événements API.
+
+
+7. MÉTHODE DE TRAVAIL POUR CHAQUE PETITE ÉTAPE
+----------------------------------------------
+
+Pour chaque étape numérotée :
+
+1. préciser la règle métier et le critère d'acceptation ;
+2. créer ou modifier le modèle et sa migration si nécessaire ;
+3. écrire les permissions et le service métier ;
+4. écrire les tests avant ou avec l'implémentation ;
+5. exposer l'API puis la page Web correspondante ;
+6. tester les erreurs, accès interdits et cas limites ;
+7. exécuter formatage, lint, django check et tests ciblés ;
+8. faire une démonstration courte ;
+9. obtenir validation avant l'étape suivante.
+
+Définition de terminé : code testé, migration réversible, permission vérifiée,
+interface mobile correcte, événement analytique utile et documentation mise à
+jour. Une page qui fonctionne sans contrôle d'accès ni test n'est pas terminée.
+
+
+8. PREMIER LOT À AUTORISER APRÈS VALIDATION DE CE PLAN
+------------------------------------------------------
+
+Le premier lot d'implémentation proposé couvre uniquement :
+
+- Partie 0 : décisions indispensables consignées ;
+- Partie 1 : configuration sécurisée et environnement reproductible ;
+- Partie 2, étapes 2.1 à 2.4 : modèle User personnalisé et migration initiale ;
+- tests de démarrage, authentification et permissions de base.
+
+Ce lot est volontairement petit : changer AUTH_USER_MODEL après la création des
+modèles métier serait coûteux. Il doit donc être validé avant de construire les
+profils et les autres domaines.
+
+
+9. POINTS À VALIDER PAR LE PORTEUR DU PROJET
+--------------------------------------------
+
+[ ] Le périmètre Web/PWA avant Flutter est accepté.
+[ ] Django Templates + DRF est accepté pour la V1.
+[ ] Les rôles utilisateurs et internes sont confirmés.
+[ ] L'identifiant principal, email ou téléphone, est choisi.
+[ ] Les matières, niveaux, modes et zones de Kinshasa sont fournis.
+[ ] La devise et le prestataire Mobile Money V1 sont choisis.
+[ ] Les règles de commission, annulation et remboursement sont approuvées.
+[ ] Le processus de vérification et les documents acceptés sont approuvés.
+[ ] Les règles d'intégrité académique sont approuvées.
+[ ] L'ordre des jalons A à E est approuvé.
+[ ] Le premier lot d'implémentation est autorisé.
+
+
+FIN DU PLAN - Aucune fonctionnalité métier ne doit être commencée avant la
+validation des choix structurants de la partie 0 et du premier lot.
