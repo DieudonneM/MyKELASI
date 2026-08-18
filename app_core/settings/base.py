@@ -14,6 +14,10 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 
 INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
+    "profiles.apps.ProfilesConfig",
+    "verification.apps.VerificationConfig",
+    "learning.apps.LearningConfig",
+    "bookings.apps.BookingsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -122,6 +126,11 @@ REST_FRAMEWORK = {
         "auth": "10/minute",
     },
 }
+
+REST_FRAMEWORK["PAGE_SIZE"] = 12
+REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"] = (
+    "rest_framework.pagination.PageNumberPagination"
+)
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),

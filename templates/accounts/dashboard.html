@@ -5,5 +5,6 @@
     <h1>Tableau de bord</h1>
     <p>Bienvenue, {{ user.first_name|default:user.email }}.</p>
     <p>Type de compte : {{ user.get_account_type_display|default:"Administration" }}</p>
+    <p><a href="{% url 'bookings:list' %}">Voir mes réservations</a></p>
 </section>
 {% endblock %}

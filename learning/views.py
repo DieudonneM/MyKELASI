@@ -1,0 +1,111 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import CreateView, DetailView, ListView
+
+from accounts.models import User
+
+from .forms import LearningRequestForm, ProposalForm
+from .models import LearningEvent, LearningRequest, Proposal
+from .services import generate_matches
+
+
+class LearnerRequiredMixin(LoginRequiredMixin):
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.account_type != User.AccountType.LEARNER:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+
+class TeacherRequiredMixin(LoginRequiredMixin):
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.account_type != User.AccountType.TEACHER:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+
+class LearningRequestCreateView(LearnerRequiredMixin, CreateView):
+    model = LearningRequest
+    form_class = LearningRequestForm
+    template_name = "learning/request_form.html"
+
+    def form_valid(self, form):
+        form.instance.learner = self.request.user
+        response = super().form_valid(form)
+        LearningEvent.objects.create(
+            name=LearningEvent.Name.REQUEST_CREATED,
+            actor=self.request.user,
+            learning_request=self.object,
+        )
+        generate_matches(self.object)
+        return response
+
+
+class LearningRequestListView(LearnerRequiredMixin, ListView):
+    template_name = "learning/request_list.html"
+    context_object_name = "requests"
+    paginate_by = 12
+
+    def get_queryset(self):
+        return LearningRequest.objects.filter(learner=self.request.user).select_related(
+            "subject", "level", "teaching_mode", "service_area"
+        )
+
+
+class LearningRequestDetailView(LoginRequiredMixin, DetailView):
+    model = LearningRequest
+    template_name = "learning/request_detail.html"
+    context_object_name = "learning_request"
+    slug_field = "public_id"
+    slug_url_kwarg = "public_id"
+
+    def get_queryset(self):
+        queryset = LearningRequest.objects.select_related(
+            "learner", "subject", "level", "teaching_mode", "service_area"
+        ).prefetch_related("matches__teacher__user", "proposals__teacher__user")
+        if self.request.user.account_type == User.AccountType.LEARNER:
+            return queryset.filter(learner=self.request.user)
+        if self.request.user.account_type == User.AccountType.TEACHER:
+            return queryset.filter(matches__teacher__user=self.request.user).distinct()
+        return queryset.none()
+
+
+class ProposalCreateView(TeacherRequiredMixin, CreateView):
+    model = Proposal
+    form_class = ProposalForm
+    template_name = "learning/proposal_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.account_type == User.AccountType.TEACHER:
+            self.learning_request = get_object_or_404(
+                LearningRequest.objects.filter(
+                    matches__teacher__user=request.user,
+                    status__in=(LearningRequest.Status.OPEN, LearningRequest.Status.MATCHED),
+                ).distinct(),
+                public_id=kwargs["public_id"],
+            )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["learning_request"] = self.learning_request
+        return context
+
+    def form_valid(self, form):
+        teacher = self.request.user.teacher_profile
+        if Proposal.objects.filter(
+            learning_request=self.learning_request,
+            teacher=teacher,
+        ).exists():
+            form.add_error(None, "Vous avez déjà envoyé une proposition pour cette demande.")
+            return self.form_invalid(form)
+        form.instance.learning_request = self.learning_request
+        form.instance.teacher = teacher
+        form.save()
+        LearningEvent.objects.create(
+            name=LearningEvent.Name.PROPOSAL_SENT,
+            actor=self.request.user,
+            learning_request=self.learning_request,
+            payload={"proposal_id": str(form.instance.public_id)},
+        )
+        return redirect(self.learning_request)

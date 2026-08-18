@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Publier le profil | MyKELASI{% endblock %}
+{% block content %}<section class="auth-panel"><p>Étape 3 sur 3</p><h1>Publier votre profil</h1><p>Complétion : {{ profile.completion_percentage }} %</p><form method="post">{% csrf_token %}{{ form.as_p }}<button class="primary" type="submit">Publier</button></form></section>{% endblock %}

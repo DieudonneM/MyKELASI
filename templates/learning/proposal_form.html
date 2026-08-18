@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Envoyer une proposition | MyKELASI{% endblock %}
+{% block content %}<section class="auth-panel"><h1>Proposer mes services</h1><p>{{ learning_request.subject }} · budget maximal {{ learning_request.budget_max }} CDF</p><form method="post">{% csrf_token %}{{ form.as_p }}<button class="primary" type="submit">Envoyer la proposition</button></form></section>{% endblock %}

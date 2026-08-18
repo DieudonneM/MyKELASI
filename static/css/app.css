@@ -25,4 +25,14 @@ button[type="submit"].primary { min-height: 44px; padding: 10px 18px; color: whi
 .helptext { display: block; margin-top: 5px; color: #53615a; font-size: .9rem; }
 .message { padding: 12px 16px; background: #dff3eb; border-left: 4px solid var(--accent); }
 .actions { margin-top: 24px; display: flex; gap: 16px; flex-wrap: wrap; }
+.search-header { margin-bottom: 36px; }
+.search-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.search-filters p { margin: 0; }
+.search-filters button, .search-filters > a { align-self: end; }
+.teacher-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.teacher-card { padding: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.teacher-card h2 { margin-top: 0; font-size: 1.3rem; }
+.pagination { justify-content: center; margin-top: 28px; color: var(--ink); }
+.pagination a { color: var(--accent); }
 @media (max-width: 520px) { .site-header { align-items: flex-start; padding-block: 16px; } nav { flex-direction: column; align-items: flex-end; gap: 8px; } .page-shell { margin-top: 28px; } }
+@media (max-width: 620px) { .search-filters, .teacher-grid { grid-template-columns: 1fr; } }

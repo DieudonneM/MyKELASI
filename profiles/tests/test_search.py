@@ -1,0 +1,127 @@
+from decimal import Decimal
+
+import pytest
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+from rest_framework.test import APIClient
+
+from profiles.models import Level, ServiceArea, Subject, TeachingMode
+
+
+def create_teacher(email, name, rate, subject, area, *, is_public=True):
+    user = get_user_model().objects.create_user(
+        email=email,
+        account_type="TEACHER",
+        email_verified=True,
+        first_name=name,
+        last_name="Test",
+    )
+    profile = user.teacher_profile
+    profile.headline = f"Enseignant de {subject.name}"
+    profile.bio = "Accompagnement pédagogique personnalisé."
+    profile.hourly_rate = Decimal(rate)
+    profile.years_experience = 5
+    profile.languages = "Français"
+    profile.is_public = is_public
+    profile.save()
+    profile.subjects.add(subject)
+    profile.levels.add(Level.objects.first())
+    profile.teaching_modes.add(TeachingMode.objects.first())
+    profile.service_areas.add(area)
+    return profile
+
+
+@pytest.mark.django_db
+def test_web_search_filters_subject_area_and_budget(client):
+    math = Subject.objects.get(slug="mathematiques")
+    french = Subject.objects.get(slug="francais")
+    gombe = ServiceArea.objects.get(slug="gombe")
+    limete = ServiceArea.objects.get(slug="limete")
+    expected = create_teacher("math@example.com", "Alice", "20000", math, gombe)
+    create_teacher("french@example.com", "Bruno", "15000", french, gombe)
+    create_teacher("expensive@example.com", "Chantal", "40000", math, limete)
+
+    response = client.get(
+        reverse("profiles:teacher-search"),
+        {"subject": math.pk, "area": gombe.pk, "max_rate": 25000},
+    )
+
+    assert response.status_code == 200
+    assert list(response.context["teachers"]) == [expected]
+
+
+@pytest.mark.django_db
+def test_search_excludes_private_and_inactive_profiles(client):
+    subject = Subject.objects.first()
+    area = ServiceArea.objects.first()
+    public = create_teacher("public@example.com", "Public", "20000", subject, area)
+    create_teacher("private@example.com", "Private", "18000", subject, area, is_public=False)
+    inactive = create_teacher("inactive@example.com", "Inactive", "16000", subject, area)
+    inactive.user.is_active = False
+    inactive.user.save(update_fields=("is_active",))
+
+    response = client.get(reverse("profiles:teacher-search"))
+
+    assert list(response.context["teachers"]) == [public]
+
+
+@pytest.mark.django_db
+def test_web_search_orders_by_price(client):
+    subject = Subject.objects.first()
+    area = ServiceArea.objects.first()
+    expensive = create_teacher("expensive@example.com", "Expensive", "30000", subject, area)
+    affordable = create_teacher("affordable@example.com", "Affordable", "10000", subject, area)
+
+    response = client.get(reverse("profiles:teacher-search"), {"ordering": "hourly_rate"})
+
+    assert list(response.context["teachers"]) == [affordable, expensive]
+
+
+@pytest.mark.django_db
+def test_api_search_is_public_filtered_and_paginated():
+    subject = Subject.objects.get(slug="mathematiques")
+    other_subject = Subject.objects.get(slug="francais")
+    area = ServiceArea.objects.first()
+    expected = create_teacher("api@example.com", "API", "12000", subject, area)
+    create_teacher("other@example.com", "Other", "10000", other_subject, area)
+
+    response = APIClient().get(
+        reverse("profiles-api:teacher-search"),
+        {"subject": subject.pk, "max_rate": 15000},
+    )
+
+    assert response.status_code == 200
+    assert response.data["count"] == 1
+    assert response.data["results"][0]["public_id"] == str(expected.public_id)
+
+
+@pytest.mark.django_db
+def test_text_search_matches_subject_name(client):
+    subject = Subject.objects.get(slug="programmation")
+    area = ServiceArea.objects.first()
+    teacher = create_teacher("code@example.com", "Grace", "22000", subject, area)
+
+    response = client.get(reverse("profiles:teacher-search"), {"q": "programmation"})
+
+    assert list(response.context["teachers"]) == [teacher]
+
+
+@pytest.mark.django_db
+def test_api_search_paginates_twelve_teachers():
+    subject = Subject.objects.first()
+    area = ServiceArea.objects.first()
+    for index in range(13):
+        create_teacher(
+            f"teacher-{index}@example.com",
+            f"Teacher {index:02}",
+            "20000",
+            subject,
+            area,
+        )
+
+    response = APIClient().get(reverse("profiles-api:teacher-search"))
+
+    assert response.status_code == 200
+    assert response.data["count"] == 13
+    assert len(response.data["results"]) == 12
+    assert response.data["next"] is not None

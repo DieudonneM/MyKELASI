@@ -1,0 +1,1 @@
+"""Réservations et transitions transactionnelles."""

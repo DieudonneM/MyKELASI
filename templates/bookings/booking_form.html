@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Planifier la session | MyKELASI{% endblock %}
+{% block content %}<section class="auth-panel"><h1>Planifier la session</h1><p>{{ proposal.teacher }} · {{ proposal.amount }} CDF</p><p>{{ proposal.learning_request.subject }} · {{ proposal.learning_request.teaching_mode }}</p><form method="post">{% csrf_token %}{{ form.as_p }}<button class="primary" type="submit">Demander la réservation</button></form></section>{% endblock %}

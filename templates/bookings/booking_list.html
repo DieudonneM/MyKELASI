@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Mes réservations | MyKELASI{% endblock %}
+{% block content %}<section><h1>Mes réservations</h1><div class="teacher-grid">{% for booking in bookings %}<article class="teacher-card"><h2><a href="{{ booking.get_absolute_url }}">{{ booking.proposal.learning_request.subject }}</a></h2><p>{{ booking.start_at }} – {{ booking.end_at|time }}</p><p>{{ booking.get_status_display }}</p><p>{% if user == booking.learner %}Avec {{ booking.teacher.get_full_name }}{% else %}Avec {{ booking.learner.get_full_name|default:booking.learner.email }}{% endif %}</p></article>{% empty %}<p>Aucune réservation.</p>{% endfor %}</div></section>{% endblock %}

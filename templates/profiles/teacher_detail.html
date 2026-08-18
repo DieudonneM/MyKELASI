@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}{{ teacher.user.get_full_name }} | Enseignant MyKELASI{% endblock %}
+{% block content %}<article class="auth-panel"><h1>{{ teacher.user.get_full_name }}</h1><p><strong>{{ teacher.headline }}</strong></p><p>{{ teacher.bio }}</p><dl><dt>Expérience</dt><dd>{{ teacher.years_experience }} année(s)</dd><dt>Tarif</dt><dd>{{ teacher.hourly_rate }} {{ teacher.currency }}/heure</dd><dt>Matières</dt><dd>{{ teacher.subjects.all|join:", " }}</dd><dt>Niveaux</dt><dd>{{ teacher.levels.all|join:", " }}</dd><dt>Modes</dt><dd>{{ teacher.teaching_modes.all|join:", " }}</dd><dt>Zones</dt><dd>{{ teacher.service_areas.all|join:", " }}</dd></dl></article>{% endblock %}

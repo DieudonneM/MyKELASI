@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Mes demandes | MyKELASI{% endblock %}
+{% block content %}<section><h1>Mes demandes</h1><p><a href="{% url 'learning:request-create' %}">Créer une demande</a></p><div class="teacher-grid">{% for item in requests %}<article class="teacher-card"><h2><a href="{{ item.get_absolute_url }}">{{ item.subject }}</a></h2><p>{{ item.level }} · {{ item.teaching_mode }}</p><p>{{ item.budget_max }} CDF maximum</p><p>{{ item.get_status_display }}</p></article>{% empty %}<p>Aucune demande.</p>{% endfor %}</div></section>{% endblock %}
