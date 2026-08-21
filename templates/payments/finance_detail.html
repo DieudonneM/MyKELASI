@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Traitement financier | MyKELASI{% endblock %}
+{% block content %}
+<section class="auth-panel">
+    <h1>{{ payment.reference }}</h1>
+    <p>{{ payment.amount }} {{ payment.currency }} · {{ payment.get_status_display }}</p>
+    <p>{{ payment.get_reconciliation_status_display }}</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Enregistrer l'action</button>
+    </form>
+    <h2>Journal finance</h2>
+    <ol>
+        {% for action in payment.finance_actions.all %}
+            <li>{{ action.created_at }} · {{ action.get_action_display }} · {{ action.actor }}{% if action.note %} · {{ action.note }}{% endif %}</li>
+        {% empty %}
+            <li>Aucune action.</li>
+        {% endfor %}
+    </ol>
+</section>
+{% endblock %}

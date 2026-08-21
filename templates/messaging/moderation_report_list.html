@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Signalements | MyKELASI{% endblock %}
+{% block content %}<section><h1>Signalements</h1><div class="result-list">{% for report in reports %}<article><h2><a href="{% url 'messaging:moderation-detail' report.public_id %}">{{ report.target_label }} · {{ report.get_reason_display }}</a></h2><p>{{ report.get_status_display }} · {{ report.created_at }}</p></article>{% empty %}<p>Aucun signalement.</p>{% endfor %}</div></section>{% endblock %}

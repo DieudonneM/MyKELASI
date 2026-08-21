@@ -4,27 +4,47 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}MyKELASI{% endblock %}</title>
+    <meta name="description" content="Trouvez un enseignant qualifié à Kinshasa ou en ligne avec MyKELASI.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/app.css">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <header class="site-header">
-        <a class="brand" href="/">MyKELASI</a>
+        <a class="brand" href="{% url 'home' %}" aria-label="Accueil MyKELASI">
+            <span class="brand-mark">M</span>
+            <span>MyKELASI</span>
+        </a>
         <nav aria-label="Navigation principale">
+            <a href="{% url 'profiles:teacher-search' %}">Trouver un enseignant</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'accounts:dashboard' %}">Tableau de bord</a>
+                <a href="{% url 'notifications:list' %}">Notifications</a>
+                <a href="{% url 'messaging:list' %}">Messages</a>
                 <form method="post" action="{% url 'accounts:logout' %}">
                     {% csrf_token %}
                     <button class="link-button" type="submit">Déconnexion</button>
                 </form>
             {% else %}
                 <a href="{% url 'accounts:login' %}">Connexion</a>
-                <a href="{% url 'accounts:register' %}">Inscription</a>
+                <a class="nav-cta" href="{% url 'accounts:register' %}">S'inscrire</a>
             {% endif %}
         </nav>
     </header>
-    <main class="page-shell">
+    <main class="page-shell {% block main_class %}{% endblock %}">
         {% for message in messages %}<p class="message">{{ message }}</p>{% endfor %}
         {% block content %}{% endblock %}
     </main>
+    <footer class="site-footer">
+        <a class="brand footer-brand" href="{% url 'home' %}"><span class="brand-mark">M</span><span>MyKELASI</span></a>
+        <p>Apprendre mieux, avancer plus loin.</p>
+        <div>
+            <a href="{% url 'profiles:teacher-search' %}">Enseignants</a>
+            <a href="{% url 'accounts:register' %}">Créer un compte</a>
+        </div>
+    </footer>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+    <script>window.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());</script>
 </body>
 </html>

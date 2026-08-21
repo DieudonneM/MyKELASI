@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Mes paiements | MyKELASI{% endblock %}
+{% block content %}
+<section>
+    <h1>Mes paiements</h1>
+    <div class="result-list">
+        {% for payment in payments %}
+            <article>
+                <h2><a href="{{ payment.get_absolute_url }}">{{ payment.amount }} {{ payment.currency }}</a></h2>
+                <p>{{ payment.get_status_display }} · {{ payment.created_at }}</p>
+            </article>
+        {% empty %}
+            <p>Aucun paiement.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

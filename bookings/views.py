@@ -10,7 +10,7 @@ from learning.models import Proposal
 
 from .forms import BookingActionForm, BookingCreateForm
 from .models import Booking
-from .services import create_booking, transition_booking
+from .services import create_booking, mark_session_presence, transition_booking
 
 
 class BookingCreateView(LoginRequiredMixin, FormView):
@@ -103,12 +103,15 @@ class BookingActionView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         try:
-            transition_booking(
-                booking=self.booking,
-                actor=self.request.user,
-                action=self.action,
-                reason=form.cleaned_data["reason"],
-            )
+            if self.action == "mark_present":
+                mark_session_presence(booking=self.booking, actor=self.request.user)
+            else:
+                transition_booking(
+                    booking=self.booking,
+                    actor=self.request.user,
+                    action=self.action,
+                    reason=form.cleaned_data["reason"],
+                )
         except (ValidationError, PermissionDenied) as error:
             form.add_error(None, error)
             return self.form_invalid(form)

@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Messages | MyKELASI{% endblock %}
+{% block content %}<section><h1>Messages</h1><div class="result-list">{% for conversation in conversations %}<article><h2><a href="{{ conversation.get_absolute_url }}">{{ conversation.learning_request.subject }}</a></h2><p>{% if user == conversation.learner %}{{ conversation.teacher.get_full_name|default:"Enseignant" }}{% else %}{{ conversation.learner.get_full_name|default:"Apprenant" }}{% endif %}</p></article>{% empty %}<p>Aucune conversation.</p>{% endfor %}</div></section>{% endblock %}

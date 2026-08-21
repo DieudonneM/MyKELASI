@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 from pathlib import Path
 
 import environ
@@ -18,6 +19,10 @@ INSTALLED_APPS = [
     "verification.apps.VerificationConfig",
     "learning.apps.LearningConfig",
     "bookings.apps.BookingsConfig",
+    "notifications.apps.NotificationsConfig",
+    "messaging.apps.MessagingConfig",
+    "reviews.apps.ReviewsConfig",
+    "payments.apps.PaymentsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -124,6 +129,8 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         "auth": "10/minute",
+        "messages": "30/minute",
+        "reports": "5/hour",
     },
 }
 
@@ -144,3 +151,7 @@ LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "accounts:dashboard"
 LOGOUT_REDIRECT_URL = "accounts:login"
 EMAIL_VERIFICATION_MAX_AGE = 60 * 60 * 24
+
+PAYMENT_PROVIDER = env("PAYMENT_PROVIDER", default="sandbox")
+PAYMENT_WEBHOOK_SECRET = env("PAYMENT_WEBHOOK_SECRET", default=SECRET_KEY)
+PAYMENT_COMMISSION_RATE = Decimal(env("PAYMENT_COMMISSION_RATE", default="0.10"))

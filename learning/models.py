@@ -136,6 +136,9 @@ class LearningEvent(models.Model):
         MATCH_CREATED = "match.created", "Matching créé"
         PROPOSAL_SENT = "proposal.sent", "Proposition envoyée"
         BOOKING_CREATED = "booking.created", "Réservation créée"
+        SESSION_COMPLETED = "session.completed", "Session terminée"
+        REVIEW_CREATED = "review.created", "Avis créé"
+        PAYMENT_COMPLETED = "payment.completed", "Paiement terminé"
 
     name = models.CharField(max_length=30, choices=Name.choices)
     actor = models.ForeignKey(

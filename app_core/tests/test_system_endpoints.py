@@ -16,3 +16,11 @@ def test_api_root_is_versioned(client):
 
     assert response.status_code == 200
     assert response.json() == {"name": "MyKELASI API", "version": "v1"}
+
+
+@pytest.mark.django_db
+def test_home_page_is_public(client):
+    response = client.get(reverse("home"))
+
+    assert response.status_code == 200
+    assert "Trouver un enseignant" in response.content.decode()

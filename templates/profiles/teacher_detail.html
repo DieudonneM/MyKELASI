@@ -1,3 +1,47 @@
 {% extends "base.html" %}
 {% block title %}{{ teacher.user.get_full_name }} | Enseignant MyKELASI{% endblock %}
-{% block content %}<article class="auth-panel"><h1>{{ teacher.user.get_full_name }}</h1><p><strong>{{ teacher.headline }}</strong></p><p>{{ teacher.bio }}</p><dl><dt>Expérience</dt><dd>{{ teacher.years_experience }} année(s)</dd><dt>Tarif</dt><dd>{{ teacher.hourly_rate }} {{ teacher.currency }}/heure</dd><dt>Matières</dt><dd>{{ teacher.subjects.all|join:", " }}</dd><dt>Niveaux</dt><dd>{{ teacher.levels.all|join:", " }}</dd><dt>Modes</dt><dd>{{ teacher.teaching_modes.all|join:", " }}</dd><dt>Zones</dt><dd>{{ teacher.service_areas.all|join:", " }}</dd></dl></article>{% endblock %}
+{% block content %}
+<article class="auth-panel">
+    <h1>{{ teacher.user.get_full_name }}</h1>
+    <p><strong>{{ teacher.headline }}</strong></p>
+    <p>{{ teacher.bio }}</p>
+    {% if trust_score %}
+        <h2>Trust Score : {{ trust_score.score }}/100</h2>
+        <dl>
+            {% for name, value in trust_score.components.items %}
+                <dt>{{ name }}</dt><dd>{{ value }}/100</dd>
+            {% endfor %}
+        </dl>
+        <p>Version {{ trust_score.version }}</p>
+    {% endif %}
+    <dl>
+        <dt>Expérience</dt><dd>{{ teacher.years_experience }} année(s)</dd>
+        <dt>Tarif</dt><dd>{{ teacher.hourly_rate }} {{ teacher.currency }}/heure</dd>
+        <dt>Matières</dt><dd>{{ teacher.subjects.all|join:", " }}</dd>
+        <dt>Niveaux</dt><dd>{{ teacher.levels.all|join:", " }}</dd>
+        <dt>Modes</dt><dd>{{ teacher.teaching_modes.all|join:", " }}</dd>
+        <dt>Zones</dt><dd>{{ teacher.service_areas.all|join:", " }}</dd>
+    </dl>
+    <h2>Avis transactionnels</h2>
+    {% for review in reviews %}
+        <section>
+            <h3>{{ review.rating }}/5</h3>
+            <p>{{ review.comment }}</p>
+            <p>Ponctualité {{ review.punctuality }}/5 · Communication {{ review.communication }}/5 · Qualité {{ review.quality }}/5</p>
+            {% if review.response and not review.response.is_hidden %}
+                <h4>Réponse</h4><p>{{ review.response.content }}</p>
+            {% elif user == review.subject %}
+                <p><a href="{% url 'reviews:respond' review.public_id %}">Répondre</a></p>
+            {% endif %}
+            {% if user.is_authenticated %}
+                <p><a href="{% url 'messaging:report-target' 'review' review.public_id %}">Signaler cet avis</a></p>
+            {% endif %}
+        </section>
+    {% empty %}
+        <p>Aucun avis publié.</p>
+    {% endfor %}
+    {% if user.is_authenticated %}
+        <p><a href="{% url 'messaging:report-target' 'profile' teacher.public_id %}">Signaler ce profil</a></p>
+    {% endif %}
+</article>
+{% endblock %}

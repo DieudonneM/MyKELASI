@@ -1,0 +1,1 @@
+"""Migrations de la messagerie."""

@@ -15,6 +15,9 @@ class Booking(models.Model):
         CONFIRMED = "CONFIRMED", "Confirmée"
         REJECTED = "REJECTED", "Refusée"
         CANCELLED = "CANCELLED", "Annulée"
+        COMPLETED = "COMPLETED", "Terminée"
+        NO_SHOW = "NO_SHOW", "Absence"
+        DISPUTED = "DISPUTED", "Contestée"
 
     public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     proposal = models.OneToOneField(
@@ -66,6 +69,32 @@ class Booking(models.Model):
 
     def get_absolute_url(self):
         return reverse("bookings:detail", kwargs={"public_id": self.public_id})
+
+
+class Session(models.Model):
+    booking = models.OneToOneField(Booking, on_delete=models.PROTECT, related_name="session")
+    learner_present_at = models.DateTimeField(null=True, blank=True)
+    teacher_present_at = models.DateTimeField(null=True, blank=True)
+    actual_started_at = models.DateTimeField(null=True, blank=True)
+    actual_ended_at = models.DateTimeField(null=True, blank=True)
+    outcome = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(actual_ended_at__isnull=True)
+                    | models.Q(actual_started_at__isnull=True)
+                    | models.Q(actual_ended_at__gte=models.F("actual_started_at"))
+                ),
+                name="session_end_not_before_start",
+            )
+        ]
+
+    def __str__(self):
+        return f"Session {self.booking.public_id}"
 
 
 class BookingTransition(models.Model):

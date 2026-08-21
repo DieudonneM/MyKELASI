@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Paiement | MyKELASI{% endblock %}
+{% block content %}
+<section class="auth-panel">
+    <h1>Confirmer le paiement</h1>
+    <p>{{ booking.amount }} {{ booking.currency }}</p>
+    <p>Réservation du {{ booking.start_at }}</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Initier le paiement sandbox</button>
+    </form>
+</section>
+{% endblock %}

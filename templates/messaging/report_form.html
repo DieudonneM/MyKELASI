@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Signaler | MyKELASI{% endblock %}
+{% block content %}<section class="auth-panel"><h1>Signaler un contenu</h1>{% if message %}<p>{{ message.content }}</p>{% elif target %}<p>{{ target }}</p>{% endif %}<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Envoyer le signalement</button></form></section>{% endblock %}

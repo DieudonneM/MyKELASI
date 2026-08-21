@@ -1,3 +1,52 @@
 {% extends "base.html" %}
 {% block title %}Réservation | MyKELASI{% endblock %}
-{% block content %}<section class="auth-panel"><h1>{{ booking.proposal.learning_request.subject }}</h1><p><strong>{{ booking.get_status_display }}</strong></p><p>{{ booking.start_at }} – {{ booking.end_at|time }}</p><p>{{ booking.teaching_mode }}{% if booking.service_area %} · {{ booking.service_area }}{% endif %}</p><p>{{ booking.amount }} {{ booking.currency }}</p><p>{{ booking.cancellation_policy }}</p><div class="actions">{% if user == booking.teacher and booking.status == "PENDING" %}<a href="{% url 'bookings:action' booking.public_id 'confirm' %}">Confirmer</a><a href="{% url 'bookings:action' booking.public_id 'reject' %}">Refuser</a>{% endif %}{% if booking.status == "PENDING" or booking.status == "CONFIRMED" %}<a href="{% url 'bookings:action' booking.public_id 'cancel' %}">Annuler</a>{% endif %}</div><h2>Historique</h2><ol>{% for transition in booking.transitions.all %}<li>{{ transition.created_at }} · {{ transition.get_to_status_display }}{% if transition.reason %} · {{ transition.reason }}{% endif %}</li>{% endfor %}</ol></section>{% endblock %}
+{% block content %}
+<section class="auth-panel">
+    <h1>{{ booking.proposal.learning_request.subject }}</h1>
+    <p><strong>{{ booking.get_status_display }}</strong></p>
+    <p>{{ booking.start_at }} – {{ booking.end_at|time }}</p>
+    <p>{{ booking.teaching_mode }}{% if booking.service_area %} · {{ booking.service_area }}{% endif %}</p>
+    <p>{{ booking.amount }} {{ booking.currency }}</p>
+    <p>{{ booking.cancellation_policy }}</p>
+    {% if user == booking.learner and booking.status == "CONFIRMED" %}
+        <p><a href="{% url 'payments:create' booking.public_id %}">Payer cette réservation</a></p>
+    {% endif %}
+    {% if booking.status == "COMPLETED" %}
+        <p><a href="{% url 'reviews:create' booking.public_id %}">Laisser un avis</a></p>
+    {% endif %}
+    <p><a href="{% url 'messaging:report-target' 'booking' booking.public_id %}">Signaler cette réservation</a></p>
+    <div class="actions">
+        {% if user == booking.teacher and booking.status == "PENDING" %}
+            <a href="{% url 'bookings:action' booking.public_id 'confirm' %}">Confirmer</a>
+            <a href="{% url 'bookings:action' booking.public_id 'reject' %}">Refuser</a>
+        {% endif %}
+        {% if booking.status == "PENDING" or booking.status == "CONFIRMED" %}
+            <a href="{% url 'bookings:action' booking.public_id 'cancel' %}">Annuler</a>
+        {% endif %}
+        {% if booking.status == "CONFIRMED" %}
+            <a href="{% url 'bookings:action' booking.public_id 'mark_present' %}">Marquer ma présence</a>
+            {% if user == booking.teacher %}
+                <a href="{% url 'bookings:action' booking.public_id 'complete' %}">Terminer</a>
+                <a href="{% url 'bookings:action' booking.public_id 'learner_no_show' %}">Apprenant absent</a>
+            {% else %}
+                <a href="{% url 'bookings:action' booking.public_id 'teacher_no_show' %}">Enseignant absent</a>
+            {% endif %}
+        {% endif %}
+        {% if booking.status == "CONFIRMED" or booking.status == "COMPLETED" or booking.status == "NO_SHOW" %}
+            <a href="{% url 'bookings:action' booking.public_id 'dispute' %}">Signaler un litige</a>
+        {% endif %}
+    </div>
+    {% if booking.session %}
+        <h2>Réalisation</h2>
+        <p>Apprenant présent : {{ booking.session.learner_present_at|default:"Non" }}</p>
+        <p>Enseignant présent : {{ booking.session.teacher_present_at|default:"Non" }}</p>
+        {% if booking.session.actual_ended_at %}<p>Fin réelle : {{ booking.session.actual_ended_at }}</p>{% endif %}
+    {% endif %}
+    <h2>Historique</h2>
+    <ol>
+        {% for transition in booking.transitions.all %}
+            <li>{{ transition.created_at }} · {{ transition.get_to_status_display }}{% if transition.reason %} · {{ transition.reason }}{% endif %}</li>
+        {% endfor %}
+    </ol>
+</section>
+{% endblock %}

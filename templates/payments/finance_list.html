@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Paiements à traiter | MyKELASI{% endblock %}
+{% block content %}
+<section>
+    <h1>Paiements à traiter</h1>
+    <div class="result-list">
+        {% for payment in payments %}
+            <article>
+                <h2><a href="{% url 'payments:finance-detail' payment.public_id %}">{{ payment.reference }}</a></h2>
+                <p>{{ payment.amount }} {{ payment.currency }} · {{ payment.get_status_display }} · {{ payment.get_reconciliation_status_display }}</p>
+            </article>
+        {% empty %}
+            <p>Aucun paiement.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

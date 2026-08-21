@@ -40,6 +40,7 @@ def test_superuser_has_required_permissions():
 
     assert user.is_staff is True
     assert user.is_superuser is True
+    assert user.email_verified is True
     assert user.account_type == ""
 
 

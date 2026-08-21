@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Reçu de paiement | MyKELASI{% endblock %}
+{% block content %}
+<article class="auth-panel">
+    <h1>Reçu de paiement</h1>
+    <dl>
+        <dt>Référence</dt><dd>{{ payment.reference }}</dd>
+        <dt>Montant</dt><dd>{{ payment.amount }} {{ payment.currency }}</dd>
+        <dt>État</dt><dd>{{ payment.get_status_display }}</dd>
+        <dt>Prestataire</dt><dd>{{ payment.provider }}</dd>
+        <dt>Date</dt><dd>{{ payment.created_at }}</dd>
+    </dl>
+</article>
+{% endblock %}

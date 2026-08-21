@@ -102,6 +102,14 @@ class TeacherPublicDetailView(DetailView):
             .prefetch_related("subjects", "levels", "teaching_modes", "service_areas")
         )
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["reviews"] = self.object.user.received_reviews.filter(
+            status="PUBLISHED"
+        ).select_related("reviewer", "response")
+        context["trust_score"] = self.object.trust_score_snapshots.first()
+        return context
+
 
 class TeacherSearchView(ListView):
     model = TeacherProfile

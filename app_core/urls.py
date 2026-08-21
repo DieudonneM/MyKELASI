@@ -16,22 +16,28 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import RedirectView
 
-from app_core.views import api_root, health
+from app_core.views import HomeView, api_root, health
 
 urlpatterns = [
-    path("", RedirectView.as_view(pattern_name="accounts:login", permanent=False)),
+    path("", HomeView.as_view(), name="home"),
     path('admin/', admin.site.urls),
     path("compte/", include("accounts.urls")),
     path("profils/", include("profiles.urls")),
     path("verification/", include("verification.urls")),
     path("apprentissage/", include("learning.urls")),
     path("reservations/", include("bookings.urls")),
+    path("notifications/", include("notifications.urls")),
+    path("messages/", include("messaging.urls")),
+    path("avis/", include("reviews.urls")),
+    path("paiements/", include("payments.urls")),
     path("health/", health, name="health"),
     path("api/v1/", api_root, name="api-root"),
     path("api/v1/auth/", include("accounts.api_urls")),
     path("api/v1/search/", include("profiles.api_urls")),
     path("api/v1/", include("learning.api_urls")),
     path("api/v1/", include("bookings.api_urls")),
+    path("api/v1/", include("messaging.api_urls")),
+    path("api/v1/", include("reviews.api_urls")),
+    path("api/v1/", include("payments.api_urls")),
 ]

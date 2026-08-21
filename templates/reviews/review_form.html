@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Laisser un avis | MyKELASI{% endblock %}
+{% block content %}<section class="auth-panel"><h1>Laisser un avis</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Publier l'avis</button></form></section>{% endblock %}

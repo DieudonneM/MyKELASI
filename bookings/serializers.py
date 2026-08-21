@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from learning.models import Proposal
 
-from .models import Booking, BookingTransition
+from .models import Booking, BookingTransition, Session
 
 
 class BookingCreateSerializer(serializers.Serializer):
@@ -29,6 +29,18 @@ class BookingTransitionSerializer(serializers.ModelSerializer):
         fields = ("from_status", "to_status", "actor", "reason", "created_at")
 
 
+class SessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
+        fields = (
+            "learner_present_at",
+            "teacher_present_at",
+            "actual_started_at",
+            "actual_ended_at",
+            "outcome",
+        )
+
+
 class BookingSerializer(serializers.ModelSerializer):
     subject = serializers.CharField(source="proposal.learning_request.subject.name", read_only=True)
     learner = serializers.StringRelatedField()
@@ -36,6 +48,7 @@ class BookingSerializer(serializers.ModelSerializer):
     teaching_mode = serializers.StringRelatedField()
     service_area = serializers.StringRelatedField()
     transitions = BookingTransitionSerializer(many=True, read_only=True)
+    session = SessionSerializer(read_only=True)
 
     class Meta:
         model = Booking
@@ -52,10 +65,22 @@ class BookingSerializer(serializers.ModelSerializer):
             "currency",
             "cancellation_policy",
             "status",
+            "session",
             "transitions",
         )
 
 
 class BookingActionSerializer(serializers.Serializer):
-    action = serializers.ChoiceField(choices=("confirm", "reject", "cancel"))
+    action = serializers.ChoiceField(
+        choices=(
+            "confirm",
+            "reject",
+            "cancel",
+            "mark_present",
+            "complete",
+            "learner_no_show",
+            "teacher_no_show",
+            "dispute",
+        )
+    )
     reason = serializers.CharField(max_length=500, allow_blank=True, required=False)

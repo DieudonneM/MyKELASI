@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}MyKELASI | Trouvez l'enseignant qui vous correspond{% endblock %}
+{% block body_class %}home-page{% endblock %}
+{% block main_class %}home-shell{% endblock %}
+{% block content %}
+<section class="home-hero">
+	<div class="hero-overlay"></div>
+	<div class="hero-content">
+		<p class="eyebrow">Cours particuliers à Kinshasa et en ligne</p>
+		<h1>Des cours qui vous font vraiment avancer.</h1>
+		<p class="hero-copy">Trouvez un enseignant fiable, adapté à votre niveau, votre rythme et votre budget.</p>
+		<form class="hero-search" action="{% url 'profiles:teacher-search' %}" method="get">
+			<label class="sr-only" for="home-search">Matière ou compétence recherchée</label>
+			<i data-lucide="search" aria-hidden="true"></i>
+			<input id="home-search" name="q" type="search" placeholder="Mathématiques, anglais, informatique...">
+			<button type="submit">Rechercher</button>
+		</form>
+		<div class="hero-actions">
+			<a class="button button-light" href="{% url 'profiles:teacher-search' %}">Explorer les enseignants</a>
+			{% if user.is_authenticated %}
+				<a class="button button-ghost" href="{% url 'learning:request-create' %}">Publier une demande</a>
+			{% else %}
+				<a class="button button-ghost" href="{% url 'accounts:register' %}">Créer un compte</a>
+			{% endif %}
+		</div>
+	</div>
+	<div class="hero-proof" aria-label="Les engagements MyKELASI">
+		<span><i data-lucide="badge-check" aria-hidden="true"></i> Profils vérifiables</span>
+		<span><i data-lucide="map-pin" aria-hidden="true"></i> Partout à Kinshasa</span>
+		<span><i data-lucide="shield-check" aria-hidden="true"></i> Réservation sécurisée</span>
+	</div>
+</section>
+
+<section class="home-section featured-section">
+	<div class="section-heading">
+		<div><p class="eyebrow dark">Un bon départ</p><h2>Rencontrez nos enseignants</h2></div>
+		<a class="text-link" href="{% url 'profiles:teacher-search' %}">Voir tous les profils <i data-lucide="arrow-right" aria-hidden="true"></i></a>
+	</div>
+	{% if featured_teachers %}
+		<div class="featured-grid">
+			{% for teacher in featured_teachers %}
+				<article class="featured-teacher">
+					<div class="teacher-avatar" aria-hidden="true">{{ teacher.user.first_name|first|default:"M" }}{{ teacher.user.last_name|first }}</div>
+					<div class="teacher-card-body">
+						<p class="teacher-subjects">{{ teacher.subjects.all|join:" · " }}</p>
+						<h3><a href="{{ teacher.get_absolute_url }}">{{ teacher.user.get_full_name|default:teacher.user.email }}</a></h3>
+						<p>{{ teacher.headline|default:"Enseignant MyKELASI" }}</p>
+						<div class="teacher-meta">
+							<span><i data-lucide="briefcase-business" aria-hidden="true"></i> {{ teacher.years_experience }} an{{ teacher.years_experience|pluralize }} d'expérience</span>
+							{% if teacher.hourly_rate %}<strong>{{ teacher.hourly_rate|floatformat:0 }} {{ teacher.currency }}/h</strong>{% endif %}
+						</div>
+					</div>
+				</article>
+			{% endfor %}
+		</div>
+	{% else %}
+		<div class="featured-empty">
+			<p>Les premiers profils publics arrivent bientôt.</p>
+			<a class="button button-dark" href="{% url 'accounts:register' %}">Rejoindre MyKELASI</a>
+		</div>
+	{% endif %}
+</section>
+
+<section class="journey-band">
+	<div class="home-section">
+		<div class="section-heading journey-heading">
+			<div><p class="eyebrow">Simple et transparent</p><h2>Votre prochain cours, sans complication.</h2></div>
+			<p>De la recherche à la réservation, vous gardez le contrôle à chaque étape.</p>
+		</div>
+		<ol class="journey-steps">
+			<li><span>01</span><h3>Précisez votre besoin</h3><p>Matière, niveau, disponibilité et budget.</p></li>
+			<li><span>02</span><h3>Comparez les profils</h3><p>Expérience, zone, tarifs et avis vérifiés.</p></li>
+			<li><span>03</span><h3>Réservez votre cours</h3><p>Échangez puis confirmez le créneau idéal.</p></li>
+		</ol>
+	</div>
+</section>
+
+<section class="teacher-cta home-section">
+	<div><p class="eyebrow dark">Vous enseignez ?</p><h2>Votre savoir mérite d'aller plus loin.</h2><p>Présentez votre expertise et rencontrez des apprenants motivés.</p></div>
+	<a class="button button-dark" href="{% url 'accounts:register' %}">Créer mon profil enseignant <i data-lucide="arrow-up-right" aria-hidden="true"></i></a>
+</section>
+{% endblock %}

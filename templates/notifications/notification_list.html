@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Notifications | MyKELASI{% endblock %}
+{% block content %}
+<section class="auth-panel">
+    <h1>Notifications</h1>
+    <div class="result-list">
+        {% for notification in notifications %}
+            <article>
+                <h2>{{ notification.title }}</h2>
+                <p>{{ notification.body }}</p>
+                <p><a href="{{ notification.booking.get_absolute_url }}">Voir la réservation</a></p>
+                {% if not notification.read_at %}
+                    <form method="post" action="{% url 'notifications:read' notification.pk %}">
+                        {% csrf_token %}
+                        <button type="submit">Marquer comme lue</button>
+                    </form>
+                {% endif %}
+            </article>
+        {% empty %}
+            <p>Aucune notification.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

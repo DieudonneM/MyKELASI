@@ -7,8 +7,8 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from bookings.models import Booking, BookingTransition
-from bookings.services import create_booking, transition_booking
+from bookings.models import Booking, BookingTransition, Session
+from bookings.services import create_booking, mark_session_presence, transition_booking
 from learning.models import LearningEvent, LearningRequest, Proposal
 from profiles.models import Level, ServiceArea, Subject, TeachingMode
 
@@ -132,6 +132,124 @@ def test_teacher_confirms_then_participant_cancels(booking_data):
     )
     assert cancelled.status == Booking.Status.CANCELLED
     assert BookingTransition.objects.filter(booking=booking).count() == 3
+
+
+@pytest.mark.django_db
+def test_confirmed_booking_records_presence_and_completes(booking_data):
+    learner, teacher, learning_request, proposal = booking_data
+    start_at, end_at = future_slot()
+    booking = create_booking(
+        proposal=proposal,
+        learner=learner,
+        start_at=start_at,
+        end_at=end_at,
+    )
+    booking = transition_booking(booking=booking, actor=teacher, action="confirm")
+    Booking.objects.filter(pk=booking.pk).update(
+        start_at=timezone.now() - timedelta(hours=2),
+        end_at=timezone.now() - timedelta(hours=1),
+    )
+    booking.refresh_from_db()
+
+    mark_session_presence(booking=booking, actor=learner)
+    mark_session_presence(booking=booking, actor=teacher)
+    completed = transition_booking(
+        booking=booking,
+        actor=teacher,
+        action="complete",
+        reason="Objectifs atteints.",
+    )
+
+    assert completed.status == Booking.Status.COMPLETED
+    session = Session.objects.get(booking=booking)
+    assert session.learner_present_at
+    assert session.teacher_present_at
+    assert session.actual_started_at
+    assert session.actual_ended_at
+    assert session.outcome == "Objectifs atteints."
+    assert learning_request.events.filter(name=LearningEvent.Name.SESSION_COMPLETED).exists()
+
+
+@pytest.mark.django_db
+def test_booking_cannot_complete_without_attendance_or_before_end(booking_data):
+    learner, teacher, _, proposal = booking_data
+    start_at, end_at = future_slot()
+    booking = create_booking(
+        proposal=proposal,
+        learner=learner,
+        start_at=start_at,
+        end_at=end_at,
+    )
+    booking = transition_booking(booking=booking, actor=teacher, action="confirm")
+
+    with pytest.raises(ValidationError, match="après la fin prévue"):
+        transition_booking(booking=booking, actor=teacher, action="complete")
+
+    Booking.objects.filter(pk=booking.pk).update(
+        start_at=timezone.now() - timedelta(hours=2),
+        end_at=timezone.now() - timedelta(hours=1),
+    )
+    booking.refresh_from_db()
+    with pytest.raises(ValidationError, match="présences"):
+        transition_booking(booking=booking, actor=teacher, action="complete")
+
+
+@pytest.mark.django_db
+def test_no_show_can_be_disputed_by_participant(booking_data):
+    learner, teacher, _, proposal = booking_data
+    start_at, end_at = future_slot()
+    booking = create_booking(
+        proposal=proposal,
+        learner=learner,
+        start_at=start_at,
+        end_at=end_at,
+    )
+    booking = transition_booking(booking=booking, actor=teacher, action="confirm")
+    Booking.objects.filter(pk=booking.pk).update(
+        start_at=timezone.now() - timedelta(hours=2),
+        end_at=timezone.now() - timedelta(hours=1),
+    )
+    booking.refresh_from_db()
+
+    no_show = transition_booking(
+        booking=booking,
+        actor=teacher,
+        action="learner_no_show",
+        reason="Apprenant absent.",
+    )
+    disputed = transition_booking(
+        booking=no_show,
+        actor=learner,
+        action="dispute",
+        reason="Présence contestée.",
+    )
+
+    assert disputed.status == Booking.Status.DISPUTED
+    assert disputed.transitions.filter(to_status=Booking.Status.NO_SHOW).exists()
+    assert disputed.transitions.filter(to_status=Booking.Status.DISPUTED).exists()
+
+
+@pytest.mark.django_db
+def test_outsider_cannot_mark_session_presence(booking_data):
+    learner, teacher, _, proposal = booking_data
+    start_at, end_at = future_slot()
+    booking = create_booking(
+        proposal=proposal,
+        learner=learner,
+        start_at=start_at,
+        end_at=end_at,
+    )
+    booking = transition_booking(booking=booking, actor=teacher, action="confirm")
+    Booking.objects.filter(pk=booking.pk).update(start_at=timezone.now() - timedelta(minutes=1))
+    booking.refresh_from_db()
+    outsider = get_user_model().objects.create_user(
+        email="session-outsider@example.com",
+        password="Strong-password-2026",
+        account_type="LEARNER",
+    )
+
+    with pytest.raises(PermissionDenied):
+        mark_session_presence(booking=booking, actor=outsider)
 
 
 @pytest.mark.django_db

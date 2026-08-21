@@ -11,7 +11,7 @@ from accounts.models import User
 
 from .models import Booking
 from .serializers import BookingActionSerializer, BookingCreateSerializer, BookingSerializer
-from .services import create_booking, transition_booking
+from .services import create_booking, mark_session_presence, transition_booking
 
 
 class BookingListCreateAPIView(generics.ListCreateAPIView):
@@ -67,12 +67,16 @@ class BookingActionAPIView(APIView):
         serializer = BookingActionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            booking = transition_booking(
-                booking=booking,
-                actor=request.user,
-                action=serializer.validated_data["action"],
-                reason=serializer.validated_data.get("reason", ""),
-            )
+            action = serializer.validated_data["action"]
+            if action == "mark_present":
+                mark_session_presence(booking=booking, actor=request.user)
+            else:
+                booking = transition_booking(
+                    booking=booking,
+                    actor=request.user,
+                    action=action,
+                    reason=serializer.validated_data.get("reason", ""),
+                )
         except DjangoPermissionDenied as error:
             raise PermissionDenied(str(error)) from None
         except DjangoValidationError as error:
