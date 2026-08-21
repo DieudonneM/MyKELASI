@@ -1,35 +1,79 @@
 {% extends "base.html" %}
 {% block title %}Trouver un enseignant | MyKELASI{% endblock %}
+{% block body_class %}app-page teacher-search-page{% endblock %}
 {% block content %}
-<section class="search-header">
-    <h1>Trouver un enseignant</h1>
-    <form class="search-filters" method="get">
-        {{ filter.form.as_p }}
-        <button class="primary" type="submit">Rechercher</button>
-        <a href="{% url 'profiles:teacher-search' %}">Effacer les filtres</a>
+<section class="teacher-search-hero">
+    <div class="teacher-search-intro">
+        <p class="eyebrow">Votre progression commence ici</p>
+        <h1>Trouvez l'enseignant qui vous comprend.</h1>
+        <p>Explorez des profils sélectionnés selon votre matière, votre niveau, votre rythme et votre budget.</p>
+    </div>
+    <form class="teacher-search-form" method="get">
+        <div class="teacher-query">
+            <i data-lucide="search" aria-hidden="true"></i>
+            <div>
+                <label for="{{ filter.form.q.id_for_label }}">Que souhaitez-vous apprendre ?</label>
+                {{ filter.form.q }}
+            </div>
+            <button type="submit"><span>Rechercher</span><i data-lucide="arrow-right" aria-hidden="true"></i></button>
+        </div>
+        {% if filter.form.q.errors %}<div class="search-field-errors">{{ filter.form.q.errors }}</div>{% endif %}
+        <div class="teacher-filter-heading">
+            <span><i data-lucide="sliders-horizontal" aria-hidden="true"></i> Affiner votre recherche</span>
+            {% if request.GET %}<a href="{% url 'profiles:teacher-search' %}"><i data-lucide="rotate-ccw" aria-hidden="true"></i> Réinitialiser</a>{% endif %}
+        </div>
+        <div class="teacher-filter-grid">
+            <div class="search-field"><label for="{{ filter.form.subject.id_for_label }}"><i data-lucide="book-open" aria-hidden="true"></i> {{ filter.form.subject.label }}</label>{{ filter.form.subject }}{{ filter.form.subject.errors }}</div>
+            <div class="search-field"><label for="{{ filter.form.level.id_for_label }}"><i data-lucide="graduation-cap" aria-hidden="true"></i> {{ filter.form.level.label }}</label>{{ filter.form.level }}{{ filter.form.level.errors }}</div>
+            <div class="search-field"><label for="{{ filter.form.mode.id_for_label }}"><i data-lucide="monitor-smartphone" aria-hidden="true"></i> {{ filter.form.mode.label }}</label>{{ filter.form.mode }}{{ filter.form.mode.errors }}</div>
+            <div class="search-field"><label for="{{ filter.form.area.id_for_label }}"><i data-lucide="map-pin" aria-hidden="true"></i> {{ filter.form.area.label }}</label>{{ filter.form.area }}{{ filter.form.area.errors }}</div>
+            <div class="search-field"><label for="{{ filter.form.max_rate.id_for_label }}"><i data-lucide="wallet" aria-hidden="true"></i> Budget maximum</label><div class="rate-field">{{ filter.form.max_rate }}<span>CDF/h</span></div>{{ filter.form.max_rate.errors }}</div>
+            <div class="search-field"><label for="{{ filter.form.ordering.id_for_label }}"><i data-lucide="arrow-up-down" aria-hidden="true"></i> {{ filter.form.ordering.label }}</label>{{ filter.form.ordering }}{{ filter.form.ordering.errors }}</div>
+        </div>
+        <button class="teacher-filter-submit" type="submit"><i data-lucide="sparkles" aria-hidden="true"></i> Afficher les meilleurs profils</button>
     </form>
 </section>
-<section aria-live="polite">
-    <p><strong>{{ paginator.count }}</strong> enseignant{{ paginator.count|pluralize }} trouvé{{ paginator.count|pluralize }}</p>
-    <div class="teacher-grid">
+
+<section class="teacher-results" aria-live="polite">
+    <header class="teacher-results-heading">
+        <div><p class="eyebrow">Profils disponibles</p><h2><strong>{{ paginator.count }}</strong> enseignant{{ paginator.count|pluralize }} pour vous</h2></div>
+        <p>Profils publics et informations transparentes</p>
+    </header>
+    <div class="teacher-results-grid">
         {% for teacher in teachers %}
-            <article class="teacher-card">
-                <h2><a href="{{ teacher.get_absolute_url }}">{{ teacher.user.get_full_name }}</a></h2>
-                <p>{{ teacher.headline }}</p>
-                <p><strong>{{ teacher.hourly_rate }} {{ teacher.currency }}</strong> / heure</p>
-                <p>{{ teacher.years_experience }} année{{ teacher.years_experience|pluralize }} d'expérience</p>
-                <p>{{ teacher.subjects.all|join:", " }}</p>
-                <p>{{ teacher.service_areas.all|join:", " }}</p>
+            <article class="teacher-result-card">
+                <div class="teacher-result-top">
+                    <div class="teacher-result-avatar" aria-hidden="true">{{ teacher.user.first_name|first|default:"M" }}{{ teacher.user.last_name|first }}</div>
+                    <span class="teacher-availability"><i data-lucide="circle-check" aria-hidden="true"></i> Profil public</span>
+                </div>
+                <div class="teacher-result-copy">
+                    <p class="teacher-result-subjects">{{ teacher.subjects.all|join:" · "|default:"Enseignement personnalisé" }}</p>
+                    <h3><a href="{{ teacher.get_absolute_url }}">{{ teacher.user.get_full_name|default:teacher.user.email }}</a></h3>
+                    <p class="teacher-result-headline">{{ teacher.headline|default:"Enseignant MyKELASI" }}</p>
+                    <div class="teacher-result-meta">
+                        <span><i data-lucide="briefcase-business" aria-hidden="true"></i> {{ teacher.years_experience }} an{{ teacher.years_experience|pluralize }} d'expérience</span>
+                        {% if teacher.service_areas.all %}<span><i data-lucide="map-pin" aria-hidden="true"></i> {{ teacher.service_areas.all|join:", " }}</span>{% endif %}
+                    </div>
+                </div>
+                <footer class="teacher-result-footer">
+                    <p><strong>{{ teacher.hourly_rate|floatformat:0 }}</strong> {{ teacher.currency }}<span>/ heure</span></p>
+                    <a href="{{ teacher.get_absolute_url }}">Voir le profil <i data-lucide="arrow-up-right" aria-hidden="true"></i></a>
+                </footer>
             </article>
         {% empty %}
-            <p>Aucun enseignant ne correspond à ces critères.</p>
+            <div class="teacher-search-empty">
+                <span><i data-lucide="search-x" aria-hidden="true"></i></span>
+                <h3>Aucun profil ne correspond encore.</h3>
+                <p>Élargissez votre budget ou retirez un filtre pour découvrir plus d'enseignants.</p>
+                <a class="button button-dark" href="{% url 'profiles:teacher-search' %}">Réinitialiser la recherche</a>
+            </div>
         {% endfor %}
     </div>
     {% if is_paginated %}
         <nav class="pagination" aria-label="Pagination des résultats">
-            {% if page_obj.has_previous %}<a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">Précédent</a>{% endif %}
+            {% if page_obj.has_previous %}<a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}"><i data-lucide="arrow-left" aria-hidden="true"></i> Précédent</a>{% endif %}
             <span>Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
-            {% if page_obj.has_next %}<a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Suivant</a>{% endif %}
+            {% if page_obj.has_next %}<a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Suivant <i data-lucide="arrow-right" aria-hidden="true"></i></a>{% endif %}
         </nav>
     {% endif %}
 </section>

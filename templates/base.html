@@ -18,7 +18,7 @@
         <a class="brand" href="{% url 'home' %}" aria-label="Accueil MyKELASI">
             <img class="brand-logo" src="{% static 'img/logo_black_Mk_green_n.png' %}" alt="MyKELASI" width="512" height="320">
         </a>
-        <nav aria-label="Navigation principale">
+        <nav{% if user.is_authenticated %} class="nav-authenticated"{% endif %} aria-label="Navigation principale">
             <a href="{% url 'about' %}">À propos</a>
             <a href="{% url 'profiles:teacher-search' %}">Trouver un enseignant</a>
             {% if user.is_authenticated %}

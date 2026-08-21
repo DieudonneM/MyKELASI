@@ -16,6 +16,12 @@
 				<input id="home-search" name="q" type="search" placeholder="Quelle matière souhaitez-vous apprendre ?">
 				<button type="submit" aria-label="Rechercher"><i data-lucide="arrow-right" aria-hidden="true"></i><span>Rechercher</span></button>
 			</form>
+			<div class="hero-suggestions" aria-label="Recherches populaires">
+				<span>Populaire</span>
+				<a href="{% url 'profiles:teacher-search' %}?q=Mathématiques">Mathématiques</a>
+				<a href="{% url 'profiles:teacher-search' %}?q=Anglais">Anglais</a>
+				<a href="{% url 'profiles:teacher-search' %}?q=Informatique">Informatique</a>
+			</div>
 			<div class="hero-actions">
 				<a class="button button-dark" href="{% url 'profiles:teacher-search' %}">Explorer les enseignants</a>
 				{% if user.is_authenticated %}
@@ -27,7 +33,10 @@
 		</div>
 		<div class="hero-visual" aria-hidden="true">
 			<div class="hero-halo"></div>
+			<div class="hero-orbit hero-orbit-one"></div>
+			<div class="hero-orbit hero-orbit-two"></div>
 			<img src="{% static 'img/banner-mykelasi.png' %}" alt="" width="1750" height="768">
+			<div class="hero-visual-note"><i data-lucide="sparkles"></i><span>Une expérience pensée<br>pour progresser</span></div>
 		</div>
 	</div>
 	<div class="hero-proof" aria-label="Les engagements MyKELASI">
@@ -61,8 +70,9 @@
 		</div>
 	{% else %}
 		<div class="featured-empty">
-			<p>Les premiers profils publics arrivent bientôt.</p>
-			<a class="button button-dark" href="{% url 'accounts:register' %}">Rejoindre MyKELASI</a>
+			<span class="featured-empty-icon"><i data-lucide="users-round" aria-hidden="true"></i></span>
+			<div><h3>Les premiers talents arrivent.</h3><p>MyKELASI prépare une sélection d'enseignants engagés, prêts à vous accompagner.</p></div>
+			<a class="button button-dark" href="{% url 'accounts:register' %}">Rejoindre MyKELASI <i data-lucide="arrow-up-right" aria-hidden="true"></i></a>
 		</div>
 	{% endif %}
 </section>
@@ -74,9 +84,9 @@
 			<p>De la recherche à la réservation, vous gardez le contrôle à chaque étape.</p>
 		</div>
 		<ol class="journey-steps">
-			<li><span>01</span><h3>Précisez votre besoin</h3><p>Matière, niveau, disponibilité et budget.</p></li>
-			<li><span>02</span><h3>Comparez les profils</h3><p>Expérience, zone, tarifs et avis vérifiés.</p></li>
-			<li><span>03</span><h3>Réservez votre cours</h3><p>Échangez puis confirmez le créneau idéal.</p></li>
+			<li><div><span>01</span><i data-lucide="scan-search" aria-hidden="true"></i></div><h3>Précisez votre besoin</h3><p>Matière, niveau, disponibilité et budget.</p></li>
+			<li><div><span>02</span><i data-lucide="users-round" aria-hidden="true"></i></div><h3>Comparez les profils</h3><p>Expérience, zone, tarifs et avis vérifiés.</p></li>
+			<li><div><span>03</span><i data-lucide="calendar-check" aria-hidden="true"></i></div><h3>Réservez votre cours</h3><p>Échangez puis confirmez le créneau idéal.</p></li>
 		</ol>
 	</div>
 </section>

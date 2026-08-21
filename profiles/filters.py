@@ -1,11 +1,21 @@
 import django_filters
+from django import forms
 from django.db.models import Q
 
 from .models import Level, ServiceArea, Subject, TeacherProfile, TeachingMode
 
 
 class TeacherSearchFilter(django_filters.FilterSet):
-    q = django_filters.CharFilter(method="filter_query", label="Recherche")
+    q = django_filters.CharFilter(
+        method="filter_query",
+        label="Recherche",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Mathématiques, anglais, informatique...",
+                "autocomplete": "off",
+            }
+        ),
+    )
     subject = django_filters.ModelChoiceFilter(
         field_name="subjects",
         queryset=Subject.objects.filter(is_active=True),
