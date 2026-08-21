@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Politique de confidentialité | MyKELASI{% endblock %}
+{% block body_class %}legal-page{% endblock %}
+{% block main_class %}legal-shell{% endblock %}
+{% block content %}
+<header class="legal-hero">
+    <p class="eyebrow">Vos données, vos droits</p>
+    <h1>Politique de confidentialité</h1>
+    <div class="legal-intro">
+        <p>Nous protégeons vos informations avec la même exigence que celle portée à votre expérience d'apprentissage.</p>
+        <p class="legal-date">Dernière mise à jour : 21 août 2026</p>
+    </div>
+</header>
+
+<div class="legal-layout">
+    <aside class="legal-nav" aria-label="Sommaire de la politique">
+        <p>Sommaire</p>
+        <nav>
+            <a href="#engagement">Notre engagement</a>
+            <a href="#donnees">Données collectées</a>
+            <a href="#utilisation">Utilisation</a>
+            <a href="#partage">Partage</a>
+            <a href="#conservation">Conservation</a>
+            <a href="#securite">Sécurité</a>
+            <a href="#droits">Vos droits</a>
+            <a href="#cookies">Cookies</a>
+            <a href="#contact">Nous contacter</a>
+        </nav>
+    </aside>
+
+    <article class="legal-content">
+        <section id="engagement">
+            <span>01</span>
+            <h2>Notre engagement</h2>
+            <p>MyKELASI met en relation des apprenants et des enseignants. Dans ce cadre, nous traitons certaines données personnelles nécessaires au fonctionnement, à la sécurité et à l'amélioration de la plateforme.</p>
+            <p>Nous nous engageons à collecter uniquement les informations utiles, à expliquer leur usage clairement et à ne jamais les vendre.</p>
+        </section>
+
+        <section id="donnees">
+            <span>02</span>
+            <h2>Les données que nous collectons</h2>
+            <p>Selon votre utilisation de MyKELASI, nous pouvons collecter :</p>
+            <ul>
+                <li>Vos informations d'identité et de contact : nom, prénom, adresse e-mail et numéro de téléphone.</li>
+                <li>Les informations liées à votre profil, votre parcours, vos matières, vos disponibilités et votre zone géographique.</li>
+                <li>Les données nécessaires aux réservations, paiements, échanges et avis.</li>
+                <li>Les données techniques de connexion, comme l'adresse IP, le navigateur et les journaux de sécurité.</li>
+                <li>Les messages transmis volontairement à notre équipe via le formulaire de contact.</li>
+            </ul>
+        </section>
+
+        <section id="utilisation">
+            <span>03</span>
+            <h2>Pourquoi nous les utilisons</h2>
+            <p>Ces informations nous permettent de créer et gérer votre compte, proposer des profils pertinents, faciliter les réservations et paiements, assurer les communications, vérifier les profils, prévenir la fraude et répondre à vos demandes.</p>
+            <p>Lorsque la loi l'exige, le traitement repose sur votre consentement. Dans les autres cas, il est nécessaire à l'exécution du service, au respect de nos obligations ou à notre intérêt légitime à sécuriser et améliorer MyKELASI.</p>
+        </section>
+
+        <section id="partage">
+            <span>04</span>
+            <h2>Partage et destinataires</h2>
+            <p>Vos données peuvent être visibles par l'autre partie lorsqu'elles sont nécessaires à une mise en relation ou une réservation. Elles peuvent aussi être transmises à nos prestataires techniques, de paiement ou d'hébergement, strictement pour fournir leurs services.</p>
+            <p>Nous pouvons communiquer certaines informations aux autorités lorsqu'une obligation légale nous l'impose ou pour protéger les utilisateurs et la plateforme.</p>
+        </section>
+
+        <section id="conservation">
+            <span>05</span>
+            <h2>Durée de conservation</h2>
+            <p>Nous conservons les données pendant la durée nécessaire à votre compte et à la fourniture des services. Après sa fermeture, certaines informations peuvent être archivées pendant les délais imposés par les obligations légales, comptables ou de résolution des litiges, puis supprimées ou anonymisées.</p>
+        </section>
+
+        <section id="securite">
+            <span>06</span>
+            <h2>Sécurité des informations</h2>
+            <p>Nous appliquons des mesures organisationnelles et techniques destinées à limiter l'accès non autorisé, la perte ou l'altération des données : contrôle des accès, chiffrement des échanges, journalisation et sauvegardes adaptées.</p>
+            <p>Aucun système n'offre une sécurité absolue. En cas d'incident présentant un risque pour vos droits, nous mettrons en œuvre les mesures nécessaires et les notifications prévues par la réglementation applicable.</p>
+        </section>
+
+        <section id="droits">
+            <span>07</span>
+            <h2>Vos droits</h2>
+            <p>Selon la réglementation applicable, vous pouvez demander l'accès, la rectification, la suppression ou la limitation du traitement de vos données. Vous pouvez également vous opposer à certains traitements, retirer votre consentement et demander la portabilité de vos informations.</p>
+            <p>Une preuve d'identité peut être demandée afin de protéger votre compte. Nous répondons dans un délai raisonnable et conformément aux exigences légales.</p>
+        </section>
+
+        <section id="cookies">
+            <span>08</span>
+            <h2>Cookies et technologies similaires</h2>
+            <p>MyKELASI utilise les cookies strictement nécessaires à la connexion, à la sécurité et au bon fonctionnement de la plateforme. Si des outils de mesure d'audience ou de personnalisation non essentiels sont ajoutés, votre choix sera demandé avant leur activation.</p>
+        </section>
+
+        <section id="contact">
+            <span>09</span>
+            <h2>Nous contacter</h2>
+            <p>Pour toute question ou demande relative à vos données personnelles, écrivez à <a href="mailto:contact@mykelasi.cd">contact@mykelasi.cd</a> ou utilisez notre <a href="{% url 'contact' %}">formulaire de contact</a>.</p>
+            <a class="button button-dark" href="{% url 'contact' %}">Exercer mes droits <i data-lucide="arrow-right" aria-hidden="true"></i></a>
+        </section>
+    </article>
+</div>
+{% endblock %}

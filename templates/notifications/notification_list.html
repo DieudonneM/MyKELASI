@@ -1,24 +1,23 @@
 {% extends "base.html" %}
 {% block title %}Notifications | MyKELASI{% endblock %}
 {% block content %}
-<section class="auth-panel">
-    <h1>Notifications</h1>
-    <div class="result-list">
+<section class="app-heading">
+    <div><p class="eyebrow">Restez informé</p><h1>Notifications</h1><p>Les mises à jour importantes de votre activité.</p></div>
+</section>
+<section class="notification-list">
         {% for notification in notifications %}
-            <article>
-                <h2>{{ notification.title }}</h2>
-                <p>{{ notification.body }}</p>
-                <p><a href="{{ notification.booking.get_absolute_url }}">Voir la réservation</a></p>
+            <article class="notification-row{% if not notification.read_at %} is-unread{% endif %}">
+                <span class="notification-icon"><i data-lucide="{% if notification.read_at %}check{% else %}bell{% endif %}" aria-hidden="true"></i></span>
+                <div><h2>{{ notification.title }}</h2><p>{{ notification.body }}</p><a href="{{ notification.booking.get_absolute_url }}">Voir la réservation <i data-lucide="arrow-right" aria-hidden="true"></i></a></div>
                 {% if not notification.read_at %}
                     <form method="post" action="{% url 'notifications:read' notification.pk %}">
                         {% csrf_token %}
-                        <button type="submit">Marquer comme lue</button>
+                        <button type="submit" aria-label="Marquer comme lue" title="Marquer comme lue"><i data-lucide="check" aria-hidden="true"></i></button>
                     </form>
                 {% endif %}
             </article>
         {% empty %}
-            <p>Aucune notification.</p>
+            <div class="empty-state"><i data-lucide="bell-off" aria-hidden="true"></i><h2>Vous êtes à jour</h2><p>Aucune nouvelle notification pour le moment.</p></div>
         {% endfor %}
-    </div>
 </section>
 {% endblock %}

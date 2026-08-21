@@ -1,3 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Conversation | MyKELASI{% endblock %}
-{% block content %}<section class="auth-panel"><h1>{{ conversation.learning_request.subject }}</h1><div class="result-list">{% for message in message_page %}<article><p><strong>{{ message.author.get_full_name|default:"Utilisateur MyKELASI" }}</strong> · {{ message.created_at }}</p><p>{{ message.content }}</p>{% if user == conversation.learner or user == conversation.teacher %}<a href="{% url 'messaging:report-message' conversation.public_id message.public_id %}">Signaler</a>{% endif %}</article>{% empty %}<p>Aucun message.</p>{% endfor %}</div>{% if user == conversation.learner or user == conversation.teacher %}<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Envoyer</button></form><p><a href="{% url 'messaging:report' conversation.public_id %}">Signaler la conversation</a></p>{% endif %}</section>{% endblock %}
+{% block content %}
+<section class="conversation-shell">
+	<header class="conversation-header">
+		<a href="{% url 'messaging:list' %}" aria-label="Retour aux messages"><i data-lucide="arrow-left" aria-hidden="true"></i></a>
+		<div><p>Conversation</p><h1>{{ conversation.learning_request.subject }}</h1></div>
+		{% if user == conversation.learner or user == conversation.teacher %}<a href="{% url 'messaging:report' conversation.public_id %}" aria-label="Signaler la conversation"><i data-lucide="flag" aria-hidden="true"></i></a>{% endif %}
+	</header>
+	<div class="message-thread">
+		{% for message in message_page %}
+			<article class="message-bubble{% if message.author == user %} message-own{% endif %}">
+				<div><strong>{{ message.author.get_full_name|default:"Utilisateur MyKELASI" }}</strong><time>{{ message.created_at }}</time></div>
+				<p>{{ message.content }}</p>
+				{% if user == conversation.learner or user == conversation.teacher %}<a href="{% url 'messaging:report-message' conversation.public_id message.public_id %}">Signaler</a>{% endif %}
+			</article>
+		{% empty %}
+			<div class="empty-state"><i data-lucide="messages-square" aria-hidden="true"></i><h2>Commencez la conversation</h2><p>Envoyez un premier message pour organiser la suite.</p></div>
+		{% endfor %}
+	</div>
+	{% if user == conversation.learner or user == conversation.teacher %}
+		<form class="message-composer" method="post">{% csrf_token %}{{ form.as_p }}<button type="submit" aria-label="Envoyer"><i data-lucide="send" aria-hidden="true"></i></button></form>
+	{% endif %}
+</section>
+{% endblock %}

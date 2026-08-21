@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Contact | MyKELASI{% endblock %}
+{% block body_class %}contact-page{% endblock %}
+{% block main_class %}contact-shell{% endblock %}
+{% block content %}
+<section class="contact-hero">
+    <div>
+        <p class="eyebrow">Nous sommes à votre écoute</p>
+        <h1>Parlons de votre projet.</h1>
+    </div>
+    <p>Une question, une idée ou besoin d'un accompagnement ? Écrivez-nous. Une personne de notre équipe vous répondra.</p>
+</section>
+
+<section class="contact-band">
+    <div class="contact-layout">
+        <aside class="contact-details">
+            <p class="eyebrow">Contact direct</p>
+            <h2>Chaque demande mérite une réponse claire.</h2>
+            <dl>
+                <div>
+                    <dt><i data-lucide="mail" aria-hidden="true"></i> E-mail</dt>
+                    <dd><a href="mailto:contact@mykelasi.cd">contact@mykelasi.cd</a></dd>
+                </div>
+                <div>
+                    <dt><i data-lucide="map-pin" aria-hidden="true"></i> Localisation</dt>
+                    <dd>Kinshasa, République démocratique du Congo</dd>
+                </div>
+                <div>
+                    <dt><i data-lucide="clock-3" aria-hidden="true"></i> Disponibilité</dt>
+                    <dd>Du lundi au vendredi, de 8h à 18h</dd>
+                </div>
+            </dl>
+        </aside>
+
+        <form class="contact-form" method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="contact-errors">{{ form.non_field_errors }}</div>{% endif %}
+            <div class="contact-fields">
+                <div class="contact-field">
+                    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+                <div class="contact-field">
+                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+                <div class="contact-field contact-field-wide">
+                    <label for="{{ form.subject.id_for_label }}">{{ form.subject.label }}</label>
+                    {{ form.subject }}
+                    {{ form.subject.errors }}
+                </div>
+                <div class="contact-field contact-field-wide">
+                    <label for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
+                    {{ form.message }}
+                    {{ form.message.errors }}
+                </div>
+            </div>
+            <div class="contact-submit">
+                <p>En envoyant ce formulaire, vous acceptez d'être recontacté au sujet de votre demande.</p>
+                <button type="submit">Envoyer le message <i data-lucide="send" aria-hidden="true"></i></button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

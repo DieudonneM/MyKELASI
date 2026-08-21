@@ -1,9 +1,16 @@
+from django.conf import settings
+from django.contrib import messages
+from django.core.mail import EmailMessage
+from django.urls import reverse_lazy
+from django.views.generic import FormView
 from django.views.generic import TemplateView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from profiles.models import TeacherProfile
+
+from .forms import ContactForm
 
 
 class HomeView(TemplateView):
@@ -17,6 +24,48 @@ class HomeView(TemplateView):
             .prefetch_related("subjects", "teaching_modes")[:3]
         )
         return context
+
+
+class AboutView(TemplateView):
+    template_name = "about.html"
+
+
+class PrivacyView(TemplateView):
+    template_name = "privacy.html"
+
+
+class ContactView(FormView):
+    form_class = ContactForm
+    template_name = "contact.html"
+    success_url = reverse_lazy("contact")
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.request.user.is_authenticated:
+            initial.update(
+                name=self.request.user.get_full_name(),
+                email=self.request.user.email,
+            )
+        return initial
+
+    def form_valid(self, form):
+        subject_label = dict(ContactForm.SUBJECT_CHOICES)[form.cleaned_data["subject"]]
+        EmailMessage(
+            subject=f"Contact MyKELASI - {subject_label}",
+            body=(
+                f"Nom : {form.cleaned_data['name']}\n"
+                f"E-mail : {form.cleaned_data['email']}\n\n"
+                f"{form.cleaned_data['message']}"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[settings.CONTACT_EMAIL],
+            reply_to=[form.cleaned_data["email"]],
+        ).send()
+        messages.success(
+            self.request,
+            "Votre message a bien été envoyé. Notre équipe vous répondra rapidement.",
+        )
+        return super().form_valid(form)
 
 
 @api_view(["GET"])

@@ -1,4 +1,5 @@
 import pytest
+from django.core import mail
 from django.urls import reverse
 
 
@@ -24,3 +25,45 @@ def test_home_page_is_public(client):
 
     assert response.status_code == 200
     assert "Trouver un enseignant" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_about_page_is_public(client):
+    response = client.get(reverse("about"))
+
+    assert response.status_code == 200
+    assert "Rendre le bon enseignement accessible" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_contact_page_is_public(client):
+    response = client.get(reverse("contact"))
+
+    assert response.status_code == 200
+    assert "Parlons de votre projet" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_contact_form_sends_email(client):
+    response = client.post(
+        reverse("contact"),
+        {
+            "name": "Marie Test",
+            "email": "marie@example.com",
+            "subject": "learner",
+            "message": "Je souhaite trouver un enseignant de mathématiques.",
+        },
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse("contact")
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].reply_to == ["marie@example.com"]
+
+
+@pytest.mark.django_db
+def test_privacy_page_is_public(client):
+    response = client.get(reverse("privacy"))
+
+    assert response.status_code == 200
+    assert "Politique de confidentialité" in response.content.decode()

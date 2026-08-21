@@ -115,6 +115,7 @@ MAILERS = {
     }
 }
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="MyKELASI <no-reply@mykelasi.cd>")
+CONTACT_EMAIL = env("CONTACT_EMAIL", default="contact@mykelasi.cd")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

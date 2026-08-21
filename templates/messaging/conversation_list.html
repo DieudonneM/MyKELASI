@@ -1,3 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Messages | MyKELASI{% endblock %}
-{% block content %}<section><h1>Messages</h1><div class="result-list">{% for conversation in conversations %}<article><h2><a href="{{ conversation.get_absolute_url }}">{{ conversation.learning_request.subject }}</a></h2><p>{% if user == conversation.learner %}{{ conversation.teacher.get_full_name|default:"Enseignant" }}{% else %}{{ conversation.learner.get_full_name|default:"Apprenant" }}{% endif %}</p></article>{% empty %}<p>Aucune conversation.</p>{% endfor %}</div></section>{% endblock %}
+{% block content %}
+<section class="app-heading">
+	<div><p class="eyebrow">Vos échanges</p><h1>Messages</h1><p>Retrouvez toutes vos conversations en un seul endroit.</p></div>
+</section>
+<section class="inbox-list">
+	{% for conversation in conversations %}
+		<a class="inbox-row" href="{{ conversation.get_absolute_url }}">
+			<span class="inbox-avatar" aria-hidden="true"><i data-lucide="user-round" aria-hidden="true"></i></span>
+			<span class="inbox-copy">
+				<strong>{{ conversation.learning_request.subject }}</strong>
+				<small>{% if user == conversation.learner %}{{ conversation.teacher.get_full_name|default:"Enseignant" }}{% else %}{{ conversation.learner.get_full_name|default:"Apprenant" }}{% endif %}</small>
+			</span>
+			<i data-lucide="chevron-right" aria-hidden="true"></i>
+		</a>
+	{% empty %}
+		<div class="empty-state"><i data-lucide="message-circle" aria-hidden="true"></i><h2>Aucune conversation</h2><p>Vos échanges avec les enseignants et apprenants apparaîtront ici.</p></div>
+	{% endfor %}
+</section>
+{% endblock %}

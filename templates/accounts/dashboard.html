@@ -1,10 +1,45 @@
 {% extends "base.html" %}
 {% block title %}Tableau de bord | MyKELASI{% endblock %}
 {% block content %}
-<section class="auth-panel">
-    <h1>Tableau de bord</h1>
-    <p>Bienvenue, {{ user.first_name|default:user.email }}.</p>
-    <p>Type de compte : {{ user.get_account_type_display|default:"Administration" }}</p>
-    <p><a href="{% url 'bookings:list' %}">Voir mes réservations</a></p>
+<section class="app-heading dashboard-heading">
+    <div>
+        <p class="eyebrow">Votre espace</p>
+        <h1>Bonjour, {{ user.first_name|default:"bienvenue" }}.</h1>
+        <p>Retrouvez l'essentiel de votre activité MyKELASI.</p>
+    </div>
+    <span class="account-badge"><i data-lucide="circle-user-round" aria-hidden="true"></i> {{ user.get_account_type_display|default:"Administration" }}</span>
+</section>
+
+<section class="dashboard-grid" aria-label="Raccourcis du tableau de bord">
+    <a class="dashboard-primary" href="{% url 'bookings:list' %}">
+        <span class="dashboard-icon"><i data-lucide="calendar-check" aria-hidden="true"></i></span>
+        <div><p>Réservations</p><h2>Gérez vos prochains cours</h2></div>
+        <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'messaging:list' %}">
+        <span class="dashboard-icon"><i data-lucide="messages-square" aria-hidden="true"></i></span>
+        <div><p>Messages</p><h2>Continuez vos échanges</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'notifications:list' %}">
+        <span class="dashboard-icon"><i data-lucide="bell" aria-hidden="true"></i></span>
+        <div><p>Notifications</p><h2>Suivez les nouveautés</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'learning:request-list' %}">
+        <span class="dashboard-icon"><i data-lucide="notebook-pen" aria-hidden="true"></i></span>
+        <div><p>Demandes</p><h2>Précisez votre prochain besoin</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'payments:receipt-list' %}">
+        <span class="dashboard-icon"><i data-lucide="receipt-text" aria-hidden="true"></i></span>
+        <div><p>Paiements</p><h2>Consultez vos reçus</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+</section>
+
+<section class="dashboard-cta">
+    <div><p class="eyebrow">Prochaine étape</p><h2>Un nouvel objectif en tête ?</h2></div>
+    <a class="button button-dark" href="{% url 'profiles:teacher-search' %}">Trouver un enseignant <i data-lucide="arrow-right" aria-hidden="true"></i></a>
 </section>
 {% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}À propos | MyKELASI{% endblock %}
+{% block body_class %}about-page{% endblock %}
+{% block main_class %}about-shell{% endblock %}
+{% block content %}
+<section class="about-hero">
+    <div class="about-hero-copy">
+        <p class="eyebrow">Notre raison d'être</p>
+        <h1>Rendre le bon enseignement accessible.</h1>
+        <p>MyKELASI rapproche chaque apprenant de l'enseignant capable de révéler son potentiel, à Kinshasa comme en ligne.</p>
+    </div>
+    <div class="about-hero-visual" aria-hidden="true">
+        <span></span>
+        <img src="{% static 'img/banner-mykelasi.png' %}" alt="" width="1750" height="768">
+    </div>
+</section>
+
+<section class="about-story about-section">
+    <p class="about-index">01</p>
+    <div>
+        <p class="eyebrow">Notre conviction</p>
+        <h2>Tout commence par une rencontre qui compte.</h2>
+    </div>
+    <div class="about-story-copy">
+        <p>Un cours réussi ne repose pas seulement sur une matière. Il naît d'une relation de confiance, d'une méthode adaptée et d'un rythme respecté.</p>
+        <p>Nous avons créé MyKELASI pour rendre cette rencontre plus simple, plus transparente et plus sereine. Chaque recherche doit mener vers une personne, pas simplement vers un profil.</p>
+    </div>
+</section>
+
+<section class="about-manifesto">
+    <div class="about-section">
+        <p class="eyebrow">Ce qui nous guide</p>
+        <h2>La technologie s'efface.<br>Le progrès reste.</h2>
+        <div class="about-values">
+            <article>
+                <span><i data-lucide="scan-face" aria-hidden="true"></i></span>
+                <h3>Humain avant tout</h3>
+                <p>Des profils lisibles, des échanges directs et des choix qui restent entre vos mains.</p>
+            </article>
+            <article>
+                <span><i data-lucide="sparkles" aria-hidden="true"></i></span>
+                <h3>Simple par exigence</h3>
+                <p>Chaque étape est pensée pour enlever les frictions, jamais pour ajouter de la complexité.</p>
+            </article>
+            <article>
+                <span><i data-lucide="shield-check" aria-hidden="true"></i></span>
+                <h3>Confiance durable</h3>
+                <p>La transparence et la sécurité accompagnent la relation du premier échange au dernier cours.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="about-promise about-section">
+    <p class="about-index">02</p>
+    <blockquote>« Une plateforme utile ne remplace jamais l'enseignant. Elle crée les conditions pour qu'il donne le meilleur. »</blockquote>
+</section>
+
+<section class="about-cta about-section">
+    <div>
+        <p class="eyebrow">La suite vous appartient</p>
+        <h2>Trouvez la personne qui vous fera avancer.</h2>
+    </div>
+    <a class="button button-dark" href="{% url 'profiles:teacher-search' %}">Découvrir les enseignants <i data-lucide="arrow-right" aria-hidden="true"></i></a>
+</section>
+{% endblock %}
