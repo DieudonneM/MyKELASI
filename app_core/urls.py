@@ -18,7 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from app_core.views import AboutView, ContactView, HomeView, PrivacyView, api_root, health
+from app_core.views import AboutView, ContactView, HomeView, PrivacyView, api_root, api_schema, health, ready
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
@@ -36,10 +36,13 @@ urlpatterns = [
     path("avis/", include("reviews.urls")),
     path("paiements/", include("payments.urls")),
     path("health/", health, name="health"),
+    path("ready/", ready, name="ready"),
+    path("api/v1/schema/", api_schema, name="openapi-schema"),
     path("api/v1/", api_root, name="api-root"),
     path("api/v1/auth/", include("accounts.api_urls")),
     path("api/v1/search/", include("profiles.api_urls")),
     path("api/v1/", include("profiles.api_teacher_urls")),
+    path("api/v1/", include("profiles.api_learner_urls")),
     path("api/v1/", include("learning.api_urls")),
     path("api/v1/", include("bookings.api_urls")),
     path("api/v1/", include("messaging.api_urls")),

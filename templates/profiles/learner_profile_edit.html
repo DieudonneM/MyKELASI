@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Modifier mon profil | MyKELASI{% endblock %}
+{% block content %}
+<section class="auth-panel">
+    <h1>Modifier mon profil Apprenant</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="primary" type="submit">Enregistrer les modifications</button>
+    </form>
+    <p class="actions">
+        <a href="{% url 'profiles:learner-profile' %}">Annuler</a>
+    </p>
+</section>
+{% endblock %}

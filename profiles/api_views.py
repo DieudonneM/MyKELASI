@@ -5,9 +5,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .filters import TeacherSearchFilter
-from .models import Level, ServiceArea, Subject, TeacherProfile, TeachingMode
+from .models import LearnerProfile, Level, ServiceArea, Subject, TeacherProfile, TeachingMode
 from .serializers import (
     AvailabilitySerializer,
+    LearnerProfileSerializer,
     TeacherProfileReferenceSerializer,
     TeacherProfileSerializer,
     TeacherSearchSerializer,
@@ -17,6 +18,36 @@ from .serializers import (
 class IsTeacher(BasePermission):
     def has_permission(self, request, view):
         return bool(request.user.is_authenticated and request.user.account_type == "TEACHER")
+
+
+class IsLearner(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user.is_authenticated and request.user.account_type == "LEARNER")
+
+
+class LearnerProfileAPIView(generics.RetrieveUpdateAPIView):
+    serializer_class = LearnerProfileSerializer
+    permission_classes = (IsLearner,)
+
+    def get_object(self):
+        profile, _ = LearnerProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+
+class LearnerProfileCatalogAPIView(APIView):
+    permission_classes = (IsLearner,)
+
+    def get(self, request):
+        serializer = TeacherProfileReferenceSerializer
+        return Response(
+            {
+                "levels": serializer(Level.objects.filter(is_active=True), many=True).data,
+                "interests": serializer(Subject.objects.filter(is_active=True), many=True).data,
+                "service_areas": serializer(
+                    ServiceArea.objects.filter(is_active=True), many=True
+                ).data,
+            }
+        )
 
 
 class TeacherProfileAPIView(generics.RetrieveUpdateAPIView):

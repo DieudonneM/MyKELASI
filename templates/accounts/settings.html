@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Paramètres du compte | MyKELASI{% endblock %}
+{% block content %}
+<section class="auth-panel">
+    <h1>Paramètres du compte</h1>
+    <p>Gestion de la sécurité et des préférences de votre compte MyKELASI.</p>
+    
+    <h2>Compte</h2>
+    <p>Type de compte : <strong>{{ user.get_account_type_display }}</strong></p>
+    <p>Adresse e-mail : {{ user.email }}</p>
+
+    <h2>Sécurité</h2>
+    <p><a class="button button-outline" href="{% url 'accounts:password-reset' %}">Changer mon mot de passe</a></p>
+
+    <h2>Suppression / Désactivation du compte</h2>
+    <p>La désactivation bloque l'accès à votre compte tout en conservant les historiques obligatoires conformément à la réglementation.</p>
+    <form method="post" action="{% url 'accounts:deactivate' %}">
+        {% csrf_token %}
+        <button class="button button-danger" type="submit" onclick="return confirm('Êtes-vous sûr de vouloir désactiver votre compte ?');">Désactiver mon compte</button>
+    </form>
+</section>
+{% endblock %}

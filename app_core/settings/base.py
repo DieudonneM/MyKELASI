@@ -12,6 +12,7 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = False
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
+CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
 
 INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
@@ -106,18 +107,21 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MAILERS = {
-    "default": {
-        "BACKEND": env(
-            "MAILER_BACKEND",
-            default="django.core.mail.backends.console.EmailBackend",
-        ),
-    }
-}
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.console.EmailBackend",
+)
+EMAIL_HOST = env("SMTP_HOST", default="")
+EMAIL_PORT = env.int("SMTP_PORT", default=587)
+EMAIL_HOST_USER = env("SMTP_USERNAME", default="")
+EMAIL_HOST_PASSWORD = env("SMTP_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("SMTP_USE_TLS", default=True)
+EMAIL_TIMEOUT = env.int("SMTP_TIMEOUT", default=10)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="MyKELASI <no-reply@mykelasi.cd>")
 CONTACT_EMAIL = env("CONTACT_EMAIL", default="contact@mykelasi.cd")
 
 REST_FRAMEWORK = {
+    "COERCE_DECIMAL_TO_STRING": True,
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",

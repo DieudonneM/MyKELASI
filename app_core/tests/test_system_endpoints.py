@@ -12,6 +12,22 @@ def test_health_endpoint(client):
 
 
 @pytest.mark.django_db
+def test_ready_endpoint(client):
+    response = client.get(reverse("ready"))
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ready", "database": "connected"}
+
+
+@pytest.mark.django_db
+def test_openapi_schema_endpoint(client):
+    response = client.get(reverse("openapi-schema"))
+
+    assert response.status_code == 200
+    assert "MyKELASI API" in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_api_root_is_versioned(client):
     response = client.get(reverse("api-root"))
 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Availability, Level, ServiceArea, Subject, TeacherProfile, TeachingMode
+from .models import Availability, LearnerProfile, Level, ServiceArea, Subject, TeacherProfile, TeachingMode
 
 
 class TeacherProfileReferenceSerializer(serializers.Serializer):
@@ -210,3 +210,86 @@ class TeacherSearchSerializer(serializers.ModelSerializer):
             "service_areas",
             "url",
         )
+
+
+class LearnerProfileSerializer(serializers.ModelSerializer):
+    user = TeacherProfileUserSerializer(read_only=True)
+    first_name = serializers.CharField(
+        source="user.first_name", write_only=True, required=False, max_length=150
+    )
+    last_name = serializers.CharField(
+        source="user.last_name", write_only=True, required=False, max_length=150
+    )
+    levels = TeacherProfileReferenceSerializer(many=True, read_only=True)
+    interests = TeacherProfileReferenceSerializer(many=True, read_only=True)
+    preferred_service_area = TeacherProfileReferenceSerializer(read_only=True)
+
+    level_ids = serializers.PrimaryKeyRelatedField(
+        source="levels",
+        queryset=Level.objects.filter(is_active=True),
+        many=True,
+        write_only=True,
+        required=False,
+    )
+    interest_ids = serializers.PrimaryKeyRelatedField(
+        source="interests",
+        queryset=Subject.objects.filter(is_active=True),
+        many=True,
+        write_only=True,
+        required=False,
+    )
+    preferred_service_area_id = serializers.PrimaryKeyRelatedField(
+        source="preferred_service_area",
+        queryset=ServiceArea.objects.filter(is_active=True),
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+    completion_percentage = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = LearnerProfile
+        fields = (
+            "id",
+            "user",
+            "first_name",
+            "last_name",
+            "levels",
+            "interests",
+            "preferred_service_area",
+            "level_ids",
+            "interest_ids",
+            "preferred_service_area_id",
+            "completion_percentage",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "user",
+            "levels",
+            "interests",
+            "preferred_service_area",
+            "completion_percentage",
+            "created_at",
+            "updated_at",
+        )
+
+    def update(self, instance, validated_data):
+        relation_data = {
+            field: validated_data.pop(field)
+            for field in ("levels", "interests")
+            if field in validated_data
+        }
+        user_data = validated_data.pop("user", {})
+        user = instance.user
+        for field, value in user_data.items():
+            setattr(user, field, value)
+        if user_data:
+            user.save(update_fields=(*user_data.keys(), "updated_at"))
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        instance.save()
+        for field, value in relation_data.items():
+            getattr(instance, field).set(value)
+        return instance

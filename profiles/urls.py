@@ -1,6 +1,8 @@
 from django.urls import path
 
 from .views import (
+    LearnerProfileDetailView,
+    LearnerProfileEditView,
     TeacherIdentityView,
     TeacherOfferView,
     TeacherPublicDetailView,
@@ -11,6 +13,8 @@ from .views import (
 app_name = "profiles"
 
 urlpatterns = [
+    path("apprenant/", LearnerProfileDetailView.as_view(), name="learner-profile"),
+    path("apprenant/modifier/", LearnerProfileEditView.as_view(), name="learner-profile-edit"),
     path("enseignants/", TeacherSearchView.as_view(), name="teacher-search"),
     path(
         "enseignant/onboarding/identite/",

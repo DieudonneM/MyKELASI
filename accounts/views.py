@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core import signing
@@ -54,3 +55,18 @@ class VerifyEmailView(View):
 
 class VerificationInvalidView(TemplateView):
     template_name = "accounts/verification_invalid.html"
+
+
+class AccountSettingsView(LoginRequiredMixin, TemplateView):
+    template_name = "accounts/settings.html"
+
+
+class DeactivateAccountView(LoginRequiredMixin, View):
+    def post(self, request):
+        user = request.user
+        user.status = User.Status.DEACTIVATED
+        user.is_active = False
+        user.save(update_fields=("status", "is_active", "updated_at"))
+        logout(request)
+        messages.info(request, "Votre compte a été désactivé.")
+        return redirect("accounts:login")

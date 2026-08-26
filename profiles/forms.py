@@ -1,7 +1,44 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import TeacherProfile
+from .models import LearnerProfile, TeacherProfile
+
+
+class LearnerProfileForm(forms.ModelForm):
+    first_name = forms.CharField(label="Prénom", max_length=150, required=False)
+    last_name = forms.CharField(label="Nom", max_length=150, required=False)
+
+    class Meta:
+        model = LearnerProfile
+        fields = (
+            "first_name",
+            "last_name",
+            "levels",
+            "interests",
+            "preferred_service_area",
+        )
+        widgets = {
+            "levels": forms.CheckboxSelectMultiple,
+            "interests": forms.CheckboxSelectMultiple,
+            "preferred_service_area": forms.Select,
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.user:
+            self.fields["first_name"].initial = self.instance.user.first_name
+            self.fields["last_name"].initial = self.instance.user.last_name
+
+    def save(self, commit=True):
+        profile = super().save(commit=commit)
+        user = profile.user
+        first_name = self.cleaned_data.get("first_name", "")
+        last_name = self.cleaned_data.get("last_name", "")
+        if user.first_name != first_name or user.last_name != last_name:
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save(update_fields=("first_name", "last_name", "updated_at"))
+        return profile
 
 
 class TeacherIdentityForm(forms.Form):

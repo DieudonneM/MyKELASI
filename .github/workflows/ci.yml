@@ -5,7 +5,8 @@ on:
   pull_request:
 
 jobs:
-  test:
+  django_test:
+    name: Django Web & API Tests
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -33,6 +34,7 @@ jobs:
       POSTGRES_PORT: "5432"
     steps:
       - uses: actions/checkout@v4
+      - run: git diff --check
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
@@ -43,3 +45,18 @@ jobs:
       - run: python manage.py check
       - run: python manage.py migrate --noinput
       - run: pytest
+
+  flutter_test:
+    name: Flutter Mobile App Analysis & Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: MobileAppMyKELASI
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test

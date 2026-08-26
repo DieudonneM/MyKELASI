@@ -68,11 +68,32 @@ class LearnerProfile(models.Model):
     )
     levels = models.ManyToManyField(Level, blank=True, related_name="learners")
     interests = models.ManyToManyField(Subject, blank=True, related_name="interested_learners")
+    preferred_service_area = models.ForeignKey(
+        ServiceArea,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="learners",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ("user__email",)
+        verbose_name = "profil apprenant"
+
     def __str__(self):
-        return self.user.email
+        return self.user.get_full_name() or self.user.email
+
+    @property
+    def completion_percentage(self):
+        checks = (
+            bool(self.user.first_name and self.user.last_name),
+            self.levels.exists(),
+            self.interests.exists(),
+            self.preferred_service_area_id is not None,
+        )
+        return round(sum(checks) / len(checks) * 100)
 
 
 class TeacherProfile(models.Model):

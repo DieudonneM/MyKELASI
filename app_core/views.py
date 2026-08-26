@@ -76,5 +76,54 @@ def health(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def ready(request):
+    try:
+        from django.db import connection
+
+        connection.ensure_connection()
+        return Response({"status": "ready", "database": "connected"})
+    except Exception:
+        return Response({"status": "error", "database": "unreachable"}, status=503)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def api_schema(request):
+    schema = {
+        "openapi": "3.0.3",
+        "info": {
+            "title": "MyKELASI API",
+            "description": "API REST MyKELASI pour Apprenants, Formateurs et Administration (Kinshasa, RDC)",
+            "version": "1.0.0",
+        },
+        "paths": {
+            "/api/v1/auth/register/": {"post": {"summary": "Inscription Apprenant ou Enseignant"}},
+            "/api/v1/auth/login/": {"post": {"summary": "Obtention des jetons JWT"}},
+            "/api/v1/auth/refresh/": {"post": {"summary": "Rafraîchissement du jeton JWT"}},
+            "/api/v1/auth/logout/": {"post": {"summary": "Invalidation du jeton refresh"}},
+            "/api/v1/auth/verify-email/": {"post": {"summary": "Vérification de l'adresse e-mail"}},
+            "/api/v1/auth/me/": {"get": {"summary": "Profil utilisateur connecté"}},
+            "/api/v1/search/teachers/": {"get": {"summary": "Recherche publique d'enseignants"}},
+            "/api/v1/teacher/profile/": {
+                "get": {"summary": "Consultation du profil enseignant privé"},
+                "patch": {"summary": "Mise à jour du profil enseignant"},
+            },
+            "/api/v1/requests/": {
+                "get": {"summary": "Liste des demandes de l'apprenant"},
+                "post": {"summary": "Création d'une demande de cours"},
+            },
+            "/api/v1/bookings/": {
+                "get": {"summary": "Liste des réservations"},
+                "post": {"summary": "Création d'une réservation"},
+            },
+            "/api/v1/conversations/": {"get": {"summary": "Liste des conversations de l'utilisateur"}},
+            "/api/v1/payments/webhook/": {"post": {"summary": "Webhook Mobile Money sandbox"}},
+        },
+    }
+    return Response(schema)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def api_root(request):
     return Response({"name": "MyKELASI API", "version": "v1"})

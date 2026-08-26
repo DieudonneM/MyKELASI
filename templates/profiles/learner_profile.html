@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Mon profil Apprenant | MyKELASI{% endblock %}
+{% block content %}
+<section class="auth-panel">
+    <h1>Mon profil Apprenant</h1>
+    <p><strong>{{ profile.user.get_full_name|default:profile.user.email }}</strong></p>
+    <p>Complétion du profil : {{ profile.completion_percentage }} %</p>
+    <dl>
+        <dt>E-mail</dt><dd>{{ profile.user.email }} ({% if profile.user.email_verified %}Vérifié{% else %}Non vérifié{% endif %})</dd>
+        <dt>Prénom</dt><dd>{{ profile.user.first_name|default:"Non renseigné" }}</dd>
+        <dt>Nom</dt><dd>{{ profile.user.last_name|default:"Non renseigné" }}</dd>
+        <dt>Niveaux d'étude</dt><dd>{{ profile.levels.all|join:", "|default:"Aucun sélectionné" }}</dd>
+        <dt>Matières d'intérêt</dt><dd>{{ profile.interests.all|join:", "|default:"Aucune sélectionnée" }}</dd>
+        <dt>Zone préférée (Kinshasa)</dt><dd>{{ profile.preferred_service_area.name|default:"Non renseignée" }}</dd>
+    </dl>
+    <p class="actions">
+        <a class="button" href="{% url 'profiles:learner-profile-edit' %}">Modifier mon profil</a>
+        <a class="button button-outline" href="{% url 'accounts:settings' %}">Paramètres du compte</a>
+    </p>
+</section>
+{% endblock %}

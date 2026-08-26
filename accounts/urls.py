@@ -2,7 +2,9 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
 from .views import (
+    AccountSettingsView,
     DashboardView,
+    DeactivateAccountView,
     LoginView,
     RegisterView,
     VerificationInvalidView,
@@ -17,6 +19,8 @@ urlpatterns = [
     path("connexion/", LoginView.as_view(), name="login"),
     path("deconnexion/", auth_views.LogoutView.as_view(), name="logout"),
     path("tableau-de-bord/", DashboardView.as_view(), name="dashboard"),
+    path("parametres/", AccountSettingsView.as_view(), name="settings"),
+    path("desactiver-compte/", DeactivateAccountView.as_view(), name="deactivate"),
     path("verification-envoyee/", VerificationSentView.as_view(), name="verification-sent"),
     path("verifier-email/<str:token>/", VerifyEmailView.as_view(), name="verify-email"),
     path("verification-invalide/", VerificationInvalidView.as_view(), name="verification-invalid"),

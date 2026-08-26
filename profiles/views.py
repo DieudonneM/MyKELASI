@@ -3,13 +3,43 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import DetailView, FormView, ListView
+from django.views.generic import DetailView, FormView, ListView, TemplateView, UpdateView
 
 from accounts.models import User
 
 from .filters import TeacherSearchFilter
-from .forms import TeacherIdentityForm, TeacherOfferForm, TeacherPublishForm
-from .models import TeacherProfile
+from .forms import LearnerProfileForm, TeacherIdentityForm, TeacherOfferForm, TeacherPublishForm
+from .models import LearnerProfile, TeacherProfile
+
+
+class LearnerRequiredMixin(LoginRequiredMixin):
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.account_type != User.AccountType.LEARNER:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_profile(self):
+        profile, _ = LearnerProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+
+class LearnerProfileDetailView(LearnerRequiredMixin, TemplateView):
+    template_name = "profiles/learner_profile.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["profile"] = self.get_profile()
+        return context
+
+
+class LearnerProfileEditView(LearnerRequiredMixin, UpdateView):
+    model = LearnerProfile
+    form_class = LearnerProfileForm
+    template_name = "profiles/learner_profile_edit.html"
+    success_url = reverse_lazy("profiles:learner-profile")
+
+    def get_object(self, queryset=None):
+        return self.get_profile()
 
 
 class TeacherRequiredMixin(LoginRequiredMixin):

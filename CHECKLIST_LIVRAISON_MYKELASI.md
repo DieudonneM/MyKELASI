@@ -23,36 +23,36 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 **Preuve de cadrage :** [DECISIONS_PRODUIT_V1.md](DECISIONS_PRODUIT_V1.md#partie-01---roles-et-responsabilites)
 
-- [ ] Confirmer les rôles publics : `LEARNER` et `TEACHER`.
-- [ ] Confirmer les rôles internes : support, vérification, finance, modération, admin et super-admin.
-- [ ] Définir les permissions de chaque rôle et les objets accessibles.
-- [ ] Confirmer qu'un compte possède un rôle public principal en V1.
-- [ ] Définir la procédure de changement de rôle.
-- [ ] Définir les règles de suspension, désactivation, suppression et réactivation.
+- [x] Confirmer les rôles publics : `LEARNER` et `TEACHER`.
+- [x] Confirmer les rôles internes : support, vérification, finance, modération, admin et super-admin.
+- [x] Définir les permissions de chaque rôle et les objets accessibles.
+- [x] Confirmer qu'un compte possède un rôle public principal en V1.
+- [x] Définir la procédure de changement de rôle.
+- [x] Définir les règles de suspension, désactivation, suppression et réactivation.
 
 ## Étape 0.2 - Référentiels et règles métier
 
 **Preuve de cadrage :** [DECISIONS_PRODUIT_V1.md](DECISIONS_PRODUIT_V1.md#partie-02---referentiels-et-regles-metier)
 
-- [ ] Valider les matières, niveaux, modes d'enseignement et zones de Kinshasa.
-- [ ] Charger les référentiels par migration ou commande de seed idempotente.
-- [ ] Confirmer la devise transactionnelle : CDF.
-- [ ] Confirmer le fuseau métier : `Africa/Kinshasa`.
-- [ ] Confirmer les règles d'intégrité académique pour les TFC, mémoires et travaux.
-- [ ] Définir les contenus interdits et le circuit de signalement.
-- [ ] Choisir le prestataire Mobile Money et obtenir sa documentation sandbox.
-- [ ] Valider commission, annulation, remboursement, litige et calendrier de versement.
-- [ ] Définir les critères du pilote : inscriptions, demandes, réservations, sessions terminées, réachat et litiges.
+- [x] Valider les matières, niveaux, modes d'enseignement et zones de Kinshasa.
+- [x] Charger les référentiels par migration ou commande de seed idempotente.
+- [x] Confirmer la devise transactionnelle : CDF.
+- [x] Confirmer le fuseau métier : `Africa/Kinshasa`.
+- [x] Confirmer les règles d'intégrité académique pour les TFC, mémoires et travaux.
+- [x] Définir les contenus interdits et le circuit de signalement.
+- [x] Choisir le prestataire Mobile Money et obtenir sa documentation sandbox.
+- [x] Valider commission, annulation, remboursement, litige et calendrier de versement.
+- [x] Définir les critères du pilote : inscriptions, demandes, réservations, sessions terminées, réachat et litiges.
 
 ## Étape 0.3 - Parcours V1 accepté
 
 **Preuve de cadrage :** [DECISIONS_PRODUIT_V1.md](DECISIONS_PRODUIT_V1.md#partie-03---parcours-v1-accepte)
 
-- [ ] Valider le parcours Apprenant : inscription → profil → besoin → matches → propositions → réservation → paiement → session → avis → réachat.
-- [ ] Valider le parcours Formateur : inscription → email → profil → vérification → publication → matches → proposition → réservation → session → revenus → avis.
-- [ ] Valider le parcours Admin : connexion sécurisée → supervision → vérification → modération → finance → rapports.
-- [ ] Définir les pages et écrans obligatoires listés dans les parties suivantes.
-- [ ] Fixer les critères d'acceptation avant de commencer chaque jalon.
+- [x] Valider le parcours Apprenant : inscription → profil → besoin → matches → propositions → réservation → paiement → session → avis → réachat.
+- [x] Valider le parcours Formateur : inscription → email → profil → vérification → publication → matches → proposition → réservation → session → revenus → avis.
+- [x] Valider le parcours Admin : connexion sécurisée → supervision → vérification → modération → finance → rapports.
+- [x] Définir les pages et écrans obligatoires listés dans les parties suivantes.
+- [x] Fixer les critères d'acceptation avant de commencer chaque jalon.
 
 ---
 
@@ -60,66 +60,66 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 1.1 - Configuration Django et environnements
 
-- [ ] Vérifier `.env.example` sans secret réel.
-- [ ] Vérifier que `SECRET_KEY`, base de données, hôtes, email et paiement viennent de l'environnement.
-- [ ] Corriger la configuration email de production avec `EMAIL_BACKEND` et non `MAILERS`.
-- [ ] Séparer clairement développement, test, staging et production.
-- [ ] Vérifier `DEBUG=False` en staging et production.
-- [ ] Configurer `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` et les domaines officiels.
-- [ ] Configurer PostgreSQL pour staging et production.
-- [ ] Configurer langue française et `Africa/Kinshasa`.
-- [ ] Configurer fichiers statiques, médias et stockage privé des documents.
-- [ ] Ajouter une commande ou procédure de migration reproductible.
-- [ ] Ajouter `/health/` et, si nécessaire, `/ready/` sans données sensibles.
-- [ ] Exécuter `python manage.py check` et `python manage.py check --deploy`.
+- [x] Vérifier `.env.example` sans secret réel.
+- [x] Vérifier que `SECRET_KEY`, base de données, hôtes, email et paiement viennent de l'environnement.
+- [x] Corriger la configuration email de production avec `EMAIL_BACKEND` et non `MAILERS`.
+- [x] Séparer clairement développement, test, staging et production.
+- [x] Vérifier `DEBUG=False` en staging et production.
+- [x] Configurer `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` et les domaines officiels.
+- [x] Configurer PostgreSQL pour staging et production.
+- [x] Configurer langue française et `Africa/Kinshasa`.
+- [x] Configurer fichiers statiques, médias et stockage privé des documents.
+- [x] Ajouter une commande ou procédure de migration reproductible.
+- [x] Ajouter `/health/` et, si nécessaire, `/ready/` sans données sensibles.
+- [x] Exécuter `python manage.py check` et `python manage.py check --deploy`.
 
 ## Étape 1.2 - API et contrats
 
-- [ ] Stabiliser la version `/api/v1/`.
-- [ ] Documenter chaque endpoint avec méthode, authentification, permissions, payloads et erreurs.
-- [ ] Uniformiser pagination : `count`, `next`, `previous`, `results`.
-- [ ] Uniformiser les dates ISO 8601 avec fuseau.
-- [ ] Sérialiser les montants en chaînes décimales, jamais en flottants.
-- [ ] Documenter les enums et transitions autorisées.
-- [ ] Retourner des codes métier exploitables par Flutter.
-- [ ] Vérifier les erreurs par champ pour les formulaires.
-- [ ] Tester les réponses 200, 201, 204, 400, 401, 403, 404, 409, 429 et 500 utiles.
-- [ ] Vérifier les permissions objet sur chaque endpoint privé.
-- [ ] Ajouter limitation de débit sur auth, messages, signalements et mutations sensibles.
-- [ ] Produire une collection Postman/Insomnia ou un schéma OpenAPI versionné.
+- [x] Stabiliser la version `/api/v1/`.
+- [x] Documenter chaque endpoint avec méthode, authentification, permissions, payloads et erreurs.
+- [x] Uniformiser pagination : `count`, `next`, `previous`, `results`.
+- [x] Uniformiser les dates ISO 8601 avec fuseau.
+- [x] Sérialiser les montants en chaînes décimales, jamais en flottants.
+- [x] Documenter les enums et transitions autorisées.
+- [x] Retourner des codes métier exploitables par Flutter.
+- [x] Vérifier les erreurs par champ pour les formulaires.
+- [x] Tester les réponses 200, 201, 204, 400, 401, 403, 404, 409, 429 et 500 utiles.
+- [x] Vérifier les permissions objet sur chaque endpoint privé.
+- [x] Ajouter limitation de débit sur auth, messages, signalements et mutations sensibles.
+- [x] Produire une collection Postman/Insomnia ou un schéma OpenAPI versionné.
 
 ## Étape 1.3 - Sécurité transverse
 
-- [ ] Vérifier absence de secrets dans Git, logs, fixtures et captures.
-- [ ] Activer cookies `Secure`, `HttpOnly`, `SameSite` et HTTPS en production.
-- [ ] Vérifier CSRF sur Web et authentification JWT sur API.
-- [ ] Vérifier protections XSS, injection, IDOR, brute force et enumeration de comptes.
-- [ ] Vérifier contrôle MIME, extension, taille et stockage privé des uploads.
-- [ ] Ne jamais exposer adresse exacte, GPS, téléphone ou documents par défaut.
-- [ ] Ajouter audit des actions sensibles : paiement, remboursement, vérification, modération, accès document.
-- [ ] Définir rétention, anonymisation et suppression des données.
-- [ ] Configurer sauvegarde chiffrée et restauration testée.
+- [x] Vérifier absence de secrets dans Git, logs, fixtures et captures.
+- [x] Activer cookies `Secure`, `HttpOnly`, `SameSite` et HTTPS en production.
+- [x] Vérifier CSRF sur Web et authentification JWT sur API.
+- [x] Vérifier protections XSS, injection, IDOR, brute force et enumeration de comptes.
+- [x] Vérifier contrôle MIME, extension, taille et stockage privé des uploads.
+- [x] Ne jamais exposer adresse exacte, GPS, téléphone ou documents par défaut.
+- [x] Ajouter audit des actions sensibles : paiement, remboursement, vérification, modération, accès document.
+- [x] Définir rétention, anonymisation et suppression des données.
+- [x] Configurer sauvegarde chiffrée et restauration testée.
 
 ## Étape 1.4 - Socle Flutter
 
-- [ ] Vérifier configuration par environnement et base URL injectable.
-- [ ] Vérifier `ApiClient`, timeouts, refresh JWT et gestion d'une seule requête de refresh concurrente.
-- [ ] Vérifier stockage sécurisé des tokens et effacement à la déconnexion.
-- [ ] Centraliser `AppException`, erreurs réseau et erreurs de validation.
-- [ ] Ajouter composants partagés loading/empty/error/retry.
-- [ ] Vérifier navigation, deep links et retour après authentification.
-- [ ] Vérifier accessibilité, contrastes, clavier, tailles tactiles et écrans étroits.
-- [ ] Vérifier persistance non sensible et absence de cache transactionnel hors ligne.
-- [ ] Configurer environnements Android, iOS et Web.
-- [ ] Ajouter tests unitaires, repository, controller, widget et parcours.
+- [x] Vérifier configuration par environnement et base URL injectable.
+- [x] Vérifier `ApiClient`, timeouts, refresh JWT et gestion d'une seule requête de refresh concurrente.
+- [x] Vérifier stockage sécurisé des tokens et effacement à la déconnexion.
+- [x] Centraliser `AppException`, erreurs réseau et erreurs de validation.
+- [x] Ajouter composants partagés loading/empty/error/retry.
+- [x] Vérifier navigation, deep links et retour après authentification.
+- [x] Vérifier accessibilité, contrastes, clavier, tailles tactiles et écrans étroits.
+- [x] Vérifier persistance non sensible et absence de cache transactionnel hors ligne.
+- [x] Configurer environnements Android, iOS et Web.
+- [x] Ajouter tests unitaires, repository, controller, widget et parcours.
 
 ## Étape 1.5 - Qualité et CI
 
-- [ ] Ajouter CI pour dépendances, migrations, `django check`, tests Django et Ruff.
-- [ ] Ajouter CI Flutter pour formatage, analyse et tests.
-- [ ] Vérifier `git diff --check`.
-- [ ] Publier un rapport de couverture par domaine critique.
-- [ ] Bloquer la livraison si migrations, tests de permissions ou tests de paiement échouent.
+- [x] Ajouter CI pour dépendances, migrations, `django check`, tests Django et Ruff.
+- [x] Ajouter CI Flutter pour formatage, analyse et tests.
+- [x] Vérifier `git diff --check`.
+- [x] Publier un rapport de couverture par domaine critique.
+- [x] Bloquer la livraison si migrations, tests de permissions ou tests de paiement échouent.
 
 ---
 
@@ -129,56 +129,56 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ### Web Django
 
-- [ ] Page d'inscription Apprenant.
-- [ ] Sélection explicite du rôle Apprenant.
-- [ ] Validation email et mot de passe.
-- [ ] Consentement aux conditions et communications.
-- [ ] Page de connexion et déconnexion.
-- [ ] Page de récupération et changement de mot de passe.
-- [ ] Page de vérification email et renvoi du lien/code.
-- [ ] Messages français pour erreurs, compte suspendu et email non vérifié.
+- [x] Page d'inscription Apprenant.
+- [x] Sélection explicite du rôle Apprenant.
+- [x] Validation email et mot de passe.
+- [x] Consentement aux conditions et communications.
+- [x] Page de connexion et déconnexion.
+- [x] Page de récupération et changement de mot de passe.
+- [x] Page de vérification email et renvoi du lien/code.
+- [x] Messages français pour erreurs, compte suspendu et email non vérifié.
 
 ### API
 
-- [ ] `POST /api/v1/auth/register/` accepte le rôle Apprenant.
-- [ ] `POST /api/v1/auth/login/`, refresh, logout et `GET /api/v1/auth/me/` sont testés.
-- [ ] Vérifier qu'un Apprenant ne reçoit jamais les permissions Formateur.
-- [ ] Tester 401, 403, 409, 429 et compte désactivé.
+- [x] `POST /api/v1/auth/register/` accepte le rôle Apprenant.
+- [x] `POST /api/v1/auth/login/`, refresh, logout et `GET /api/v1/auth/me/` sont testés.
+- [x] Vérifier qu'un Apprenant ne reçoit jamais les permissions Formateur.
+- [x] Tester 401, 403, 409, 429 et compte désactivé.
 
 ### Flutter
 
-- [ ] Écran onboarding public.
-- [ ] Écran inscription Apprenant.
-- [ ] Écran connexion générique adapté au rôle.
-- [ ] Écran vérification email.
-- [ ] Restauration de session après redémarrage.
-- [ ] Guard vers l'espace Apprenant après authentification.
-- [ ] Guard empêchant l'accès aux routes Formateur.
+- [x] Écran onboarding public.
+- [x] Écran inscription Apprenant.
+- [x] Écran connexion générique adapté au rôle.
+- [x] Écran vérification email.
+- [x] Restauration de session après redémarrage.
+- [x] Guard vers l'espace Apprenant après authentification.
+- [x] Guard empêchant l'accès aux routes Formateur.
 
 ## Étape 2.2 - Profil et préférences Apprenant
 
 ### Backend
 
-- [ ] Confirmer `LearnerProfile` et ses champs éditables.
-- [ ] Créer `GET/PATCH /api/v1/learner/profile/`.
-- [ ] Permettre niveaux, matières d'intérêt et zone préférée si retenue.
-- [ ] Définir complétion minimale du profil.
-- [ ] Tester isolation entre profils.
+- [x] Confirmer `LearnerProfile` et ses champs éditables.
+- [x] Créer `GET/PATCH /api/v1/learner/profile/`.
+- [x] Permettre niveaux, matières d'intérêt et zone préférée si retenue.
+- [x] Définir complétion minimale du profil.
+- [x] Tester isolation entre profils.
 
 ### Web
 
-- [ ] Page profil apprenant.
-- [ ] Page modification du profil.
-- [ ] Sélection des niveaux et matières.
-- [ ] Page paramètres, consentements et suppression de compte.
+- [x] Page profil apprenant.
+- [x] Page modification du profil.
+- [x] Sélection des niveaux et matières.
+- [x] Page paramètres, consentements et suppression de compte.
 
 ### Flutter
 
-- [ ] Écran `LearnerProfileScreen`.
-- [ ] Écran modification du profil.
-- [ ] Repository, DTO, controller/provider et validations.
-- [ ] États loading, vide, erreur, retry et succès.
-- [ ] Tests parsing, repository, permissions et widget.
+- [x] Écran `LearnerProfileScreen`.
+- [x] Écran modification du profil.
+- [x] Repository, DTO, controller/provider et validations.
+- [x] États loading, vide, erreur, retry et succès.
+- [x] Tests parsing, repository, permissions et widget.
 
 ---
 

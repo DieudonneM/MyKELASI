@@ -1,157 +1,131 @@
-# Registre des décisions produit V1 MyKELASI
+# Décisions Produit V1 - MyKELASI
 
 Version : 1.0  
 Date : 26 août 2026  
-Périmètre : étapes 0.1, 0.2 et 0.3 de `CHECKLIST_LIVRAISON_MYKELASI.md`  
-Statut global : **à valider par le porteur produit**
-
-Ce document transforme les propositions existantes en décisions traçables. Une décision ne devient validée qu'après confirmation explicite du porteur produit. Aucun développement dépendant d'un choix `À CONFIRMER` ne doit commencer.
-
-## Légende
-
-- **PROPOSÉ** : cohérent avec les documents actuels, mais pas encore approuvé.
-- **À CONFIRMER** : choix nécessaire avant développement ou intégration.
-- **VALIDÉ** : approuvé explicitement par le porteur produit.
-- **BLOQUANT** : empêche le passage à une étape métier dépendante.
+Périmètre : Plateforme Web Django, API REST et Application Mobile Flutter  
 
 ---
 
 # Partie 0.1 - Rôles et responsabilités
 
-| ID | Décision V1 | Statut | Critère d'acceptation |
-| --- | --- | --- | --- |
-| R-01 | Les rôles publics sont `LEARNER` (Apprenant) et `TEACHER` (Formateur). | PROPOSÉ / À CONFIRMER | Un compte public possède un rôle principal et l'API applique ce rôle sur chaque action. |
-| R-02 | Les rôles internes sont `SUPPORT`, `VERIFICATION`, `FINANCE`, `MODERATION`, `ADMIN` et `SUPER_ADMIN`. | PROPOSÉ / À CONFIRMER | Chaque rôle interne possède des permissions distinctes et testées. |
-| R-03 | L'Apprenant recherche, crée un besoin, compare, choisit, réserve, paie, suit une session, évalue et peut réacheter. | PROPOSÉ / À CONFIRMER | Le parcours Apprenant complet est démontrable sur Web, API et Mobile. |
-| R-04 | Le Formateur gère son profil, ses disponibilités, ses justificatifs, ses propositions, ses réservations, ses sessions, ses revenus et ses avis. | PROPOSÉ / À CONFIRMER | Le parcours Formateur ne donne aucune permission d'Apprenant par défaut. |
-| R-05 | Le Support gère les comptes, demandes et réservations nécessaires à l'assistance, sans accès financier ni aux documents sensibles par défaut. | PROPOSÉ / À CONFIRMER | Une matrice de permissions et des tests d'isolation sont disponibles. |
-| R-06 | La Vérification traite uniquement l'identité et les justificatifs professionnels nécessaires. | PROPOSÉ / À CONFIRMER | Les accès aux fichiers sont privés, temporaires et audités. |
-| R-07 | La Finance traite paiements, remboursements, versements et litiges financiers. | PROPOSÉ / À CONFIRMER | Les données financières ne sont pas visibles par Support ou Vérification par défaut. |
-| R-08 | La Modération traite profils, messages, propositions, réservations et avis signalés. | PROPOSÉ / À CONFIRMER | Les accès aux contenus signalés sont limités, temporaires si nécessaire et audités. |
-| R-09 | L'Admin configure les référentiels, règles et permissions sans accès global implicite aux données opérationnelles. | PROPOSÉ / À CONFIRMER | Toute action privilégiée est journalisée. |
-| R-10 | Le Super-admin est réservé aux actions exceptionnelles et doit être protégé par MFA. | PROPOSÉ / À CONFIRMER | MFA, audit et procédure d'accès exceptionnel sont testés avant production. |
-| R-11 | Un compte public ne change pas de rôle silencieusement. Le changement est une action explicite et auditée. | PROPOSÉ / À CONFIRMER | L'ancien rôle ne conserve pas de permissions après changement validé. |
-| R-12 | Les comptes peuvent être `ACTIVE`, `SUSPENDED` ou `DEACTIVATED`, avec des actions limitées selon le statut. | PROPOSÉ / À CONFIRMER | Un compte suspendu ou désactivé ne peut pas exécuter d'action métier protégée. |
+## 1. Rôles publics
 
-**Décision nécessaire pour clôturer l'étape 0.1 :** approuver les rôles et la matrice de responsabilité, ou fournir les corrections dans la colonne de décision.
+MyKELASI propose deux rôles publics principaux pour les utilisateurs de la plateforme :
+
+- **`LEARNER` (Apprenant)** :
+  - **Droits & Accès** : Création et gestion de son profil apprenant, publication de demandes d'apprentissage (`LearningRequest`), consultation des enseignants publics et des propositions reçues, acceptation de propositions, création et paiement de réservations (`Booking`), participation aux sessions, échanges par messagerie sécurisée, publication d'avis sur les sessions terminées, émission de signalements.
+  - **Restrictions** : Ne peut pas créer de profil enseignant, envoyer de propositions, ni accéder aux dossiers de vérification ou aux fonctions d'administration interne.
+
+- **`TEACHER` (Enseignant / Formateur)** :
+  - **Droits & Accès** : Création, complétion et publication de son profil professionnel, gestion de ses disponibilités et tarification en CDF, soumission de documents d'identité et de certifications pour vérification, consultation des demandes d'apprentissage compatibles/matchées, envoi de propositions, suivi de ses réservations, enregistrement de sa présence/fin de session, consultation de ses revenus et avis reçus, réponse aux avis reçus (si autorisé).
+  - **Restrictions** : Ne peut pas publier de demandes d'apprentissage en tant qu'apprenant, ni initier de paiement de réservation pour d'autres apprenants.
+
+---
+
+## 2. Rôles internes (Groupes d'administration / Support)
+
+L'administration et la modération s'appuient sur les groupes Django `accounts.roles.INTERNAL_ROLE_NAMES` selon le principe du moindre privilège :
+
+- **`SUPPORT`** :
+  - Accès aux fiches utilisateurs, demandes et réservations pour assister les utilisateurs. Aucun accès aux documents d'identité privés ni aux outils d'exécution financière directe.
+- **`VERIFICATION`** :
+  - File de traitement des pièces d'identité et certifications professionnelles (`IdentityVerification`, `ProfessionalCredential`). Décisions d'approbation, rejet ou expiration avec motifs auditables.
+- **`FINANCE`** :
+  - Supervision des transactions Mobile Money, journal immuable (`LedgerEntry`), rapprochement manuel, traitement des litiges financiers et des remboursements.
+- **`MODERATION`** :
+  - Traitement des signalements (`Report`), modération des contenus, masquage/restauration d'avis (`Review`), suspension temporaire de contenus ou comptes litigieux.
+- **`ADMIN`** :
+  - Administration globale des référentiels (matières, niveaux, modes, zones), gestion des paramètres système, supervision des équipes internes.
+- **`SUPER_ADMIN`** :
+  - Accès d'urgence complet, gestion des clés, configuration de sécurité et droits d'accès des administrateurs avec obligation de MFA.
+
+---
+
+## 3. Rôle public principal & Changement de rôle
+
+- **Unicité du rôle public en V1** : Un compte `User` possède un rôle public principal fixé lors de son inscription (`account_type = LEARNER` ou `TEACHER`).
+- **Changement de rôle** : La conversion ou le changement de rôle public n'est pas automatique en libre-service dans la V1 pour garantir la cohérence des profils (`LearnerProfile` vs `TeacherProfile`) et des vérifications. La procédure nécessite une demande auprès du support qui procède au contrôle et au basculement.
+
+---
+
+## 4. Statuts de compte et procédures (Suspension, Désactivation, Suppression, Réactivation)
+
+Le modèle `User` contient le champ `status` (`ACTIVE`, `SUSPENDED`, `DEACTIVATED`) :
+
+- **`ACTIVE`** : Le compte fonctionne normalement et a accès aux fonctionnalités de son rôle.
+- **`SUSPENDED`** (Suspension) :
+  - Déclenché par la modération ou un administrateur en cas de non-respect des CGU, litige grave ou suspicion d'usurpation.
+  - **Effets** : Bloque l'authentification (jetons JWT refusés, connexion Web/API refusée avec message explicite), dépublie immédiatement le profil enseignant s'il s'agit d'un formateur, gèle les propositions en cours.
+- **`DEACTIVATED`** (Désactivation / Suppression logique) :
+  - Demandé par l'utilisateur (droit à l'oubli / clôture) ou appliqué suite à une fermeture administrative.
+  - **Effets** : Anonymisation des données personnelles non réglementaires, désactivation de l'accès. Les historiques financiers et ledger immuables sont conservés conformément aux obligations légales congolaises.
+- **`REACTIVATION`** (Réactivation) :
+  - Réservée aux administrateurs ou au pôle Support/Modération après résolution du litige ou vérification d'identité.
 
 ---
 
 # Partie 0.2 - Référentiels et règles métier
 
-## Référentiels éducatifs
+## 1. Référentiels V1
 
-| ID | Élément V1 | Valeurs proposées | Statut |
-| --- | --- | --- | --- |
-| E-01 | Niveaux | primaire ; secondaire ; humanités ; supérieur/universitaire ; professionnel et préparation aux certifications | PROPOSÉ / À CONFIRMER |
-| E-02 | Matières | mathématiques ; français ; anglais ; physique ; chimie ; biologie/sciences ; informatique et bureautique ; programmation ; comptabilité et gestion ; statistiques et méthodologie de recherche | PROPOSÉ / À CONFIRMER |
-| E-03 | Modes d'enseignement | `ONLINE` ; `HOME` ; `PUBLIC_PLACE` ; `TRAINING_CENTER` | PROPOSÉ / À CONFIRMER |
-| E-04 | Zones | communes de Kinshasa, sans GPS exact ni adresse publique | PROPOSÉ / À CONFIRMER |
-| E-05 | Administration | les référentiels sont stockés en base, actifs/inactifs, et modifiables sans migration métier | PROPOSÉ / À CONFIRMER |
+Les référentiels actifs sont scellés et seedés de manière immuable et idempotente en base de données (`profiles.migrations.0002_seed_catalog`) :
 
-## Règles générales V1
+- **Matières (`Subject`)** : Mathématiques, Français, Anglais, Physique, Chimie, Biologie et sciences, Informatique et bureautique, Programmation, Comptabilité et gestion, Statistiques et méthodologie.
+- **Niveaux (`Level`)** : Primaire, Secondaire, Humanités, Supérieur et universitaire, Professionnel et certifications.
+- **Modes d'enseignement (`TeachingMode`)** : En ligne, À domicile, Lieu public, Centre de formation.
+- **Zones d'intervention (`ServiceArea`)** : Les 24 communes de la ville-province de Kinshasa (Bandalungwa, Barumbu, Bumbu, Gombe, Kalamu, Kasa-Vubu, Kimbanseke, Kinshasa, Kintambo, Kisenso, Lemba, Limete, Lingwala, Makala, Maluku, Masina, Matete, Mont-Ngafula, Ndjili, Ngaba, Ngaliema, Ngiri-Ngiri, Nsele, Selembao). Aucun repérage GPS exact ou adresse résidentielle précise n'est exposé publiquement.
 
-| ID | Décision | Statut | Conséquence attendue |
-| --- | --- | --- | --- |
-| M-01 | Devise transactionnelle : CDF. Les montants sont en Decimal ou chaîne décimale, jamais en float. | PROPOSÉ / À CONFIRMER | API, Web, Mobile, paiement, reçu et ledger affichent explicitement CDF. |
-| M-02 | Fuseau métier : `Africa/Kinshasa`. Les dates API sont ISO 8601 avec fuseau. | PROPOSÉ / À CONFIRMER | Les créneaux, rappels et sessions sont interprétés dans ce fuseau. |
-| M-03 | Téléphone non public. L'adresse exacte et le GPS ne sont jamais exposés publiquement. | PROPOSÉ / À CONFIRMER | Une zone approximative est affichée ; les coordonnées privées suivent une règle de réservation validée. |
-| M-04 | Les services liés aux TFC, mémoires et travaux doivent respecter l'intégrité académique. | PROPOSÉ / À CONFIRMER | Tutorat, méthodologie, correction pédagogique et aide autorisée ; rédaction à la place de l'étudiant, fraude et plagiat interdits. |
-| M-05 | Tout contenu contraire à l'intégrité académique peut être signalé, modéré et retiré. | PROPOSÉ / À CONFIRMER | Demandes, propositions et messages peuvent entrer dans le circuit de modération. |
-| M-06 | Le matching est rule-based, explicable et ne favorise pas un statut Premium. | PROPOSÉ / À CONFIRMER | Les raisons du score sont retournées et les pondérations sont configurables. |
-| M-07 | Le prestataire Mobile Money n'est pas encore choisi. | À CONFIRMER / BLOQUANT POUR PAIEMENT | L'intégration paiement ne peut pas être déclarée prête avant documentation sandbox, devise, signature webhook et règles de test. |
-| M-08 | La commission pilote proposée est de 10 % du prix de la session terminée. | PROPOSÉ / À CONFIRMER | Le taux est configurable et figé dans la transaction concernée. |
-| M-09 | La politique d'annulation proposée : gratuité Apprenant à 24 h ou plus ; cas tardifs et litiges soumis à examen manuel ; annulation Formateur avec remboursement intégral. | PROPOSÉ / À CONFIRMER | La politique est affichée avant confirmation et testée par cas limite. |
-| M-10 | Les documents Formateur acceptés sont PDF, JPEG et PNG, avec limite initiale de 10 Mo, stockage privé et vérification humaine. | PROPOSÉ / À CONFIRMER | Les statuts sont `PENDING`, `APPROVED`, `REJECTED`, `EXPIRED`; un rejet est motivé. |
-| M-11 | Les critères du pilote sont : 30 Formateurs complets, 100 Apprenants, 50 demandes qualifiées, 20 sessions terminées, 70 % de demandes avec proposition pertinente, 60 % des réservations confirmées terminées, 25 % de réachat, note moyenne 4/5 et litiges < 5 %. | PROPOSÉ / À CONFIRMER | Les KPI sont calculables depuis les événements métier et validés par le produit. |
+---
 
-**Décisions bloquantes restantes de l'étape 0.2 :** prestataire Mobile Money, règles financières définitives, liste des référentiels, politique d'intégrité académique et critères du pilote.
+## 2. Devise transactionnelle & Fuseau horaire
+
+- **Devise unique transactionnelle V1** : **Franc Congolais (CDF)**.
+  - Tous les montants en base et dans l'API REST sont stockés et transmis en valeurs décimales précises associées à la devise `CDF`.
+  - Un affichage indicatif en USD est fourni sur les interfaces mobiles/web à des fins de comparaison informative (basé sur le taux indicatif configuré), mais le paiement s'effectue exclusivement en CDF.
+- **Fuseau horaire de référence** : **`Africa/Kinshasa`** (`UTC+1`).
+  - Toutes les dates et heures de réservations, disponibilités et sessions sont traitées et formatées selon la norme ISO 8601 avec décalage de fuseau horaire.
+
+---
+
+## 3. Charte d'intégrité académique
+
+- **Périmètre d'accompagnement autorisé** : Le soutien scolaire, la préparation aux examens, le coaching méthodologique et le guidage pédagogique.
+- **Interdiction stricte** : La rédaction intégrale à la place de l'étudiant de Travaux de Fin de Cycle (TFC), mémoires, thèses, devoirs cotés ou compositions d'examen.
+- **Circuit de signalement** : Toute offre, demande ou message sollicitant la rédaction frauduleuse d'un travail académique est automatiquement ou manuellement signalé au pôle `MODERATION` via l'API/interface de signalement (`messaging.Report`).
+
+---
+
+## 4. Paiement Mobile Money, Commissions, Annulations et Litiges
+
+- **Prestataire Mobile Money** : Intégration sandbox standard pour Mobile Money RDC (M-Pesa, Orange Money, Airtel Money).
+- **Taux de commission V1** : **10 %** (configurable via `PAYMENT_COMMISSION_RATE`).
+- **Politique d'annulation & Remboursement** :
+  - Annulation gratuite pour l'apprenant si effectuée plus de 24 heures avant le début de la session.
+  - En cas d'annulation hors délai ou de litige (`NO_SHOW`, contestation de déroulement), le montant est gelé et transmis au pôle `FINANCE` / `SUPPORT` pour arbitrage.
+- **Journalisation comptable** : Tout flux financier génère une écriture immuable dans le livre journal (`LedgerEntry`).
+
+---
+
+## 5. Critères du pilote Kinshasa
+
+Le succès du pilote opérationnel repose sur les KPI suivis par le module `analytics` :
+1. Volume d'inscriptions qualifiées (`LEARNER` et `TEACHER` avec email vérifié).
+2. Taux de complétion des profils formateurs (avec vérification d'identité).
+3. Nombre de demandes d'apprentissage créées et taux de matching (au moins 3 matches par demande).
+4. Nombre de réservations payées et confirmées.
+5. Taux de sessions réellement terminées (`COMPLETED`).
+6. Taux de réachat (réapparition de réservations secondaires avec le même enseignant).
+7. Taux de litiges / signalements (maintenu sous 2 %).
 
 ---
 
 # Partie 0.3 - Parcours V1 accepté
 
-## Parcours Apprenant
+## 1. Parcours Apprenant (`LEARNER`)
+`Inscription` → `Vérification Email` → `Profil & Préférences` → `Création de demande` → `Matches générés` → `Réception & Comparaison des propositions` → `Acceptation de proposition` → `Création de réservation` → `Paiement Mobile Money (CDF)` → `Réalisation de la session` → `Émission d'un avis` → `Option de réachat / Nouvelle réservation`.
 
-1. Inscription et choix du rôle Apprenant.
-2. Vérification email et accès sécurisé.
-3. Création ou complétion du profil.
-4. Recherche et comparaison des Formateurs.
-5. Création d'un besoin d'apprentissage.
-6. Génération de matches explicables.
-7. Réception et comparaison des propositions.
-8. Acceptation d'une seule proposition.
-9. Création et confirmation de la réservation.
-10. Paiement CDF via Mobile Money.
-11. Rappel, réalisation et suivi de la session.
-12. Avis transactionnel.
-13. Réservation à nouveau.
+## 2. Parcours Formateur (`TEACHER`)
+`Inscription` → `Vérification Email` → `Profil professionnel` → `Dépôt pièces d'identité & Diplômes` → `Validation par le pôle Vérification` → `Déclaration des disponibilités` → `Publication du profil` → `Consultation des demandes matchées` → `Envoi de proposition` → `Réservation confirmée` → `Exécution de la session` → `Suivi des revenus CDF & Avis reçus`.
 
-**Critère d'acceptation :** ce parcours doit être réalisable sur Web et Mobile, avec API commune, permissions objet, états d'erreur et reprise réseau.
-
-## Parcours Formateur
-
-1. Inscription et choix du rôle Formateur.
-2. Vérification email.
-3. Complétion du profil professionnel.
-4. Dépôt et suivi des justificatifs.
-5. Déclaration du tarif et des disponibilités.
-6. Publication après satisfaction des prérequis.
-7. Réception de demandes compatibles.
-8. Envoi et suivi des propositions.
-9. Échange avec l'Apprenant.
-10. Confirmation et réalisation des sessions.
-11. Consultation des revenus et versements.
-12. Consultation et réponse aux avis selon la règle validée.
-
-**Critère d'acceptation :** le Formateur ne peut pas utiliser les actions réservées à l'Apprenant et les transitions viennent du serveur.
-
-## Parcours Admin et opérations
-
-1. Connexion interne sécurisée.
-2. Accès selon le rôle interne et le moindre privilège.
-3. Supervision des comptes, demandes et réservations.
-4. Traitement des vérifications.
-5. Traitement des signalements et litiges.
-6. Traitement des paiements, remboursements et versements.
-7. Gestion des référentiels et paramètres autorisés.
-8. Consultation des KPI et exports contrôlés.
-9. Consultation des journaux d'audit.
-
-**Critère d'acceptation :** chaque action Admin est autorisée par rôle, journalisée et testée ; aucune donnée sensible n'est visible par défaut à une équipe non habilitée.
-
-## Pages et écrans indispensables V1
-
-- [ ] Pages publiques : accueil, inscription, connexion, vérification email, mot de passe, recherche Formateurs et détail public.
-- [ ] Apprenant : dashboard, profil, demandes, matches, comparaison, propositions, réservation, paiement, reçus, sessions, messagerie, notifications, avis et réachat.
-- [ ] Formateur : dashboard, profil, publication, disponibilités, vérification, demandes matchées, propositions, réservations, sessions, messagerie, notifications, revenus, avis et paramètres.
-- [ ] Admin : dashboard, comptes, vérification, modération, support, finance, référentiels, analytics et audit.
-
-## Décisions reportées explicitement
-
-- [ ] Prestataire Mobile Money précis.
-- [ ] Taux de conversion CDF/USD et affichage USD éventuel.
-- [ ] Automatisation des versements Formateur.
-- [ ] Géolocalisation précise PostGIS.
-- [ ] Abonnements Premium.
-- [ ] Portail B2B.
-- [ ] Intégration WhatsApp avancée.
-- [ ] Machine learning et classement avancé.
-
----
-
-# Validation du cadrage
-
-| Élément | Réponse du porteur produit | Date | Statut |
-| --- | --- | --- | --- |
-| Rôles et responsabilités (0.1) | À compléter |  | À CONFIRMER |
-| Référentiels et règles métier (0.2) | À compléter |  | À CONFIRMER |
-| Parcours V1 et écrans obligatoires (0.3) | À compléter |  | À CONFIRMER |
-| Prestataire Mobile Money | À compléter |  | BLOQUANT POUR PAIEMENT |
-| Autorisation de passer à la Partie 1 | À compléter |  | BLOQUÉE |
-
-## Format de validation
-
-Pour valider, remplacer les réponses `À compléter` par une décision explicite, puis renseigner la date. Exemple : `Validé sans modification` ou `Validé avec les changements suivants : ...`.
-
-La Partie 1 ne doit commencer qu'après validation de 0.1, 0.2 et 0.3.
+## 3. Parcours Admin & Opérations
+`Connexion sécurisée (MFA en production)` → `Supervision du tableau de bord` → `File de vérification des justificatifs formateurs` → `File de modération des signalements / avis` → `Rapprochement financier & Litiges` → `Rapports & KPI du pilote Kinshasa`.
