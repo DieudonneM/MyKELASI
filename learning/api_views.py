@@ -36,7 +36,14 @@ class LearningRequestDetailAPIView(generics.RetrieveAPIView):
     lookup_field = "public_id"
 
     def get_queryset(self):
-        return LearningRequest.objects.filter(learner=self.request.user)
+        queryset = LearningRequest.objects.select_related(
+            "learner", "subject", "level", "teaching_mode", "service_area"
+        )
+        if self.request.user.account_type == User.AccountType.LEARNER:
+            return queryset.filter(learner=self.request.user)
+        if self.request.user.account_type == User.AccountType.TEACHER:
+            return queryset.filter(matches__teacher__user=self.request.user).distinct()
+        return queryset.none()
 
 
 class MatchListAPIView(APIView):
@@ -72,6 +79,11 @@ class ProposalListCreateAPIView(generics.ListCreateAPIView):
         learning_request = self.get_learning_request()
         if self.request.user.account_type != User.AccountType.TEACHER:
             raise PermissionDenied("Réservé aux enseignants.")
+        if learning_request.status not in (
+            LearningRequest.Status.OPEN,
+            LearningRequest.Status.MATCHED,
+        ):
+            raise ValidationError("Cette demande n'accepte plus de propositions.")
         if not learning_request.matches.filter(teacher__user=self.request.user).exists():
             raise PermissionDenied("Cette demande ne vous a pas été proposée.")
         teacher = self.request.user.teacher_profile

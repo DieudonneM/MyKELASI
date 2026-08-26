@@ -3,7 +3,22 @@ from django import forms
 from .models import LearningRequest, Proposal
 
 
-class LearningRequestForm(forms.ModelForm):
+class ShortLearningRequestForm(forms.ModelForm):
+    class Meta:
+        model = LearningRequest
+        fields = (
+            "subject",
+            "level",
+            "teaching_mode",
+            "budget_max",
+            "description",
+        )
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 5}),
+        }
+
+
+class DetailedLearningRequestForm(forms.ModelForm):
     class Meta:
         model = LearningRequest
         fields = (

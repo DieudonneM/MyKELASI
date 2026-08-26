@@ -12,8 +12,9 @@
             {% for match in learning_request.matches.all %}
                 <article class="teacher-card">
                     <h3><a href="{{ match.teacher.get_absolute_url }}">{{ match.teacher }}</a></h3>
-                    <p><strong>{{ match.score }} %</strong></p>
-                    <ul>{% for reason in match.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+                    <p aria-label="Score de correspondance"><strong>{{ match.score }} %</strong></p>
+                    <h4>Pourquoi ce profil correspond</h4>
+                    <ul aria-label="Raisons de la correspondance">{% for reason in match.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
                 </article>
             {% empty %}
                 <p>Aucune correspondance disponible.</p>

@@ -51,6 +51,39 @@ def test_web_search_filters_subject_area_and_budget(client):
 
 
 @pytest.mark.django_db
+def test_web_search_filters_all_learning_criteria(client):
+    subject = Subject.objects.get(slug="mathematiques")
+    level = Level.objects.get(code="secondaire")
+    mode = TeachingMode.objects.get(code="en-ligne")
+    area = ServiceArea.objects.get(slug="gombe")
+    expected = create_teacher("all-filters@example.com", "Alice", "20000", subject, area)
+    expected.levels.set([level])
+    expected.teaching_modes.set([mode])
+
+    other_level = Level.objects.exclude(pk=level.pk).first()
+    other_mode = TeachingMode.objects.exclude(pk=mode.pk).first()
+    wrong_level = create_teacher("wrong-level@example.com", "Bruno", "10000", subject, area)
+    wrong_level.levels.set([other_level])
+    wrong_level.teaching_modes.set([mode])
+    wrong_mode = create_teacher("wrong-mode@example.com", "Chantal", "10000", subject, area)
+    wrong_mode.levels.set([level])
+    wrong_mode.teaching_modes.set([other_mode])
+
+    response = client.get(
+        reverse("profiles:teacher-search"),
+        {
+            "subject": subject.pk,
+            "level": level.pk,
+            "mode": mode.pk,
+            "area": area.pk,
+            "max_rate": "20000.00",
+        },
+    )
+
+    assert list(response.context["teachers"]) == [expected]
+
+
+@pytest.mark.django_db
 def test_search_excludes_private_and_inactive_profiles(client):
     subject = Subject.objects.first()
     area = ServiceArea.objects.first()
@@ -75,6 +108,34 @@ def test_web_search_orders_by_price(client):
     response = client.get(reverse("profiles:teacher-search"), {"ordering": "hourly_rate"})
 
     assert list(response.context["teachers"]) == [affordable, expensive]
+
+
+@pytest.mark.django_db
+def test_web_search_paginates_and_preserves_filters(client):
+    subject = Subject.objects.first()
+    area = ServiceArea.objects.first()
+    for index in range(13):
+        create_teacher(
+            f"paged-{index}@example.com",
+            f"Paged {index:02}",
+            "20000",
+            subject,
+            area,
+        )
+
+    response = client.get(
+        reverse("profiles:teacher-search"),
+        {"subject": subject.pk, "area": area.pk, "ordering": "hourly_rate"},
+    )
+
+    assert response.status_code == 200
+    assert response.context["paginator"].count == 13
+    assert len(response.context["teachers"]) == 12
+    assert response.context["is_paginated"] is True
+    assert "subject=" in response.context["query_string"]
+    assert "area=" in response.context["query_string"]
+    assert "ordering=hourly_rate" in response.content.decode()
+    assert 'aria-label="Page suivante"' in response.content.decode()
 
 
 @pytest.mark.django_db

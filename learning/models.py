@@ -1,6 +1,7 @@
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
@@ -55,6 +56,25 @@ class LearningRequest(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(preferred_date__isnull=True, preferred_start_time__isnull=True)
+                    | models.Q(preferred_date__isnull=False, preferred_start_time__isnull=False)
+                ),
+                name="learning_request_complete_time_slot",
+            )
+        ]
+
+    def clean(self):
+        super().clean()
+        if bool(self.preferred_date) != bool(self.preferred_start_time):
+            raise ValidationError(
+                {
+                    "preferred_date": "La date et l'heure souhaitées doivent être renseignées ensemble.",
+                    "preferred_start_time": "La date et l'heure souhaitées doivent être renseignées ensemble.",
+                }
+            )
 
     def __str__(self):
         return f"{self.subject} - {self.learner}"

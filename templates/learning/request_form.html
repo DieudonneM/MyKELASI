@@ -1,3 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Nouvelle demande | MyKELASI{% endblock %}
-{% block content %}<section class="auth-panel"><h1>Décrire mon besoin</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button class="primary" type="submit">Trouver des enseignants</button></form></section>{% endblock %}
+{% block title %}{{ view.form_title }} | MyKELASI{% endblock %}
+{% block content %}
+<section class="auth-panel">
+	<h1>{{ view.form_title }}</h1>
+	<p>{{ view.form_intro }}</p>
+	<form method="post">
+		{% csrf_token %}
+		{{ form.as_p }}
+		<button class="primary" type="submit">Trouver des enseignants</button>
+	</form>
+	{% if view.is_short_form %}
+	<p><a href="{% url 'learning:request-create-detailed' %}">Ajouter les détails de ma demande</a></p>
+	{% endif %}
+</section>
+{% endblock %}

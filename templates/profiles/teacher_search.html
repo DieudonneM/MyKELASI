@@ -71,9 +71,9 @@
     </div>
     {% if is_paginated %}
         <nav class="pagination" aria-label="Pagination des résultats">
-            {% if page_obj.has_previous %}<a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}"><i data-lucide="arrow-left" aria-hidden="true"></i> Précédent</a>{% endif %}
-            <span>Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
-            {% if page_obj.has_next %}<a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Suivant <i data-lucide="arrow-right" aria-hidden="true"></i></a>{% endif %}
+            {% if page_obj.has_previous %}<a aria-label="Page précédente" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}"><i data-lucide="arrow-left" aria-hidden="true"></i> Précédent</a>{% endif %}
+            <span aria-current="page">Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a aria-label="Page suivante" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Suivant <i data-lucide="arrow-right" aria-hidden="true"></i></a>{% endif %}
         </nav>
     {% endif %}
 </section>

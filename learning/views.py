@@ -5,7 +5,7 @@ from django.views.generic import CreateView, DetailView, ListView
 
 from accounts.models import User
 
-from .forms import LearningRequestForm, ProposalForm
+from .forms import DetailedLearningRequestForm, ProposalForm, ShortLearningRequestForm
 from .models import LearningEvent, LearningRequest, Proposal
 from .services import generate_matches
 
@@ -24,9 +24,8 @@ class TeacherRequiredMixin(LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-class LearningRequestCreateView(LearnerRequiredMixin, CreateView):
+class LearningRequestCreateMixin(LearnerRequiredMixin, CreateView):
     model = LearningRequest
-    form_class = LearningRequestForm
     template_name = "learning/request_form.html"
 
     def form_valid(self, form):
@@ -39,6 +38,20 @@ class LearningRequestCreateView(LearnerRequiredMixin, CreateView):
         )
         generate_matches(self.object)
         return response
+
+
+class LearningRequestCreateView(LearningRequestCreateMixin):
+    form_class = ShortLearningRequestForm
+    form_title = "Décrire mon besoin"
+    form_intro = "Commencez avec les informations essentielles. Vous pourrez préciser votre demande ensuite."
+    is_short_form = True
+
+
+class DetailedLearningRequestCreateView(LearningRequestCreateMixin):
+    form_class = DetailedLearningRequestForm
+    form_title = "Préciser ma demande"
+    form_intro = "Ajoutez un créneau, une zone et une fréquence pour recevoir des correspondances plus précises."
+    is_short_form = False
 
 
 class LearningRequestListView(LearnerRequiredMixin, ListView):

@@ -156,3 +156,15 @@ EMAIL_VERIFICATION_MAX_AGE = 60 * 60 * 24
 PAYMENT_PROVIDER = env("PAYMENT_PROVIDER", default="sandbox")
 PAYMENT_WEBHOOK_SECRET = env("PAYMENT_WEBHOOK_SECRET", default=SECRET_KEY)
 PAYMENT_COMMISSION_RATE = Decimal(env("PAYMENT_COMMISSION_RATE", default="0.10"))
+
+MATCHING_WEIGHTS = {
+    "subject": 20,
+    "level": 15,
+    "teaching_mode": 10,
+    "service_area": 10,
+    "budget": 10,
+    "availability": 10,
+    "reliability": 10,
+    "reputation": 10,
+    "response_rate": 5,
+}
