@@ -4,7 +4,75 @@ from django.db.models import Avg, Count
 
 from profiles.models import TeacherProfile
 
-from .models import LearningEvent, LearningRequest, MatchResult
+from .models import LearningEvent, LearningRequest, MatchResult, Proposal
+
+
+@transaction.atomic
+def accept_proposal(*, proposal_id, learner):
+    proposal = Proposal.objects.select_for_update().select_related("learning_request").get(
+        public_id=proposal_id
+    )
+    request = LearningRequest.objects.select_for_update().get(pk=proposal.learning_request_id)
+    if request.learner_id != learner.pk:
+        raise PermissionError("Cette proposition ne vous appartient pas.")
+    if proposal.status == Proposal.Status.ACCEPTED:
+        return proposal
+    if proposal.status != Proposal.Status.SENT or request.status == LearningRequest.Status.CLOSED:
+        raise ValueError("Cette proposition n'est plus disponible.")
+    Proposal.objects.filter(
+        learning_request=request, status=Proposal.Status.SENT
+    ).exclude(pk=proposal.pk).update(status=Proposal.Status.REJECTED)
+    proposal.status = Proposal.Status.ACCEPTED
+    proposal.save(update_fields=("status", "updated_at"))
+    request.status = LearningRequest.Status.CLOSED
+    request.save(update_fields=("status", "updated_at"))
+    LearningEvent.objects.create(
+        name=LearningEvent.Name.PROPOSAL_ACCEPTED,
+        actor=learner,
+        learning_request=request,
+        payload={"proposal_id": str(proposal.public_id)},
+    )
+    _notify_proposal_participants(proposal, "accepted")
+    return proposal
+
+
+@transaction.atomic
+def reject_proposal(*, proposal_id, learner):
+    proposal = Proposal.objects.select_for_update().select_related("learning_request").get(
+        public_id=proposal_id
+    )
+    if proposal.learning_request.learner_id != learner.pk:
+        raise PermissionError("Cette proposition ne vous appartient pas.")
+    if proposal.status == Proposal.Status.REJECTED:
+        return proposal
+    if proposal.status != Proposal.Status.SENT:
+        raise ValueError("Cette proposition ne peut plus être refusée.")
+    proposal.status = Proposal.Status.REJECTED
+    proposal.save(update_fields=("status", "updated_at"))
+    LearningEvent.objects.create(
+        name=LearningEvent.Name.PROPOSAL_REJECTED,
+        actor=learner,
+        learning_request=proposal.learning_request,
+        payload={"proposal_id": str(proposal.public_id)},
+    )
+    _notify_proposal_participants(proposal, "rejected")
+    return proposal
+
+
+def _notify_proposal_participants(proposal, status):
+    from notifications.models import Notification
+
+    kind = getattr(Notification.Kind, f"PROPOSAL_{status.upper()}")
+    label = "acceptée" if status == "accepted" else "refusée"
+    users = (proposal.learning_request.learner, proposal.teacher.user)
+    for user in users:
+        Notification.objects.create(
+            user=user,
+            proposal=proposal,
+            kind=kind,
+            title=f"Proposition {label}",
+            body=f"La proposition de {proposal.teacher} a été {label}.",
+        )
 
 
 def _score_teacher(learning_request, teacher):
@@ -136,5 +204,15 @@ def generate_matches(learning_request, limit=5):
             actor=learning_request.learner,
             learning_request=learning_request,
             payload={"match_count": len(results)},
+        )
+        from notifications.models import Notification
+        from notifications.services import notify_users
+
+        notify_users(
+            users=(learning_request.learner,),
+            kind=Notification.Kind.MATCH_CREATED,
+            title="Nouveaux formateurs trouvés",
+            body=f"{len(results)} formateur(s) correspondent à votre demande.",
+            learning_request=learning_request,
         )
     return results

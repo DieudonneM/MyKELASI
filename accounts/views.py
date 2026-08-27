@@ -49,6 +49,14 @@ class VerifyEmailView(View):
         if not user.email_verified:
             user.email_verified = True
             user.save(update_fields=("email_verified", "updated_at"))
+            from notifications.models import Notification
+
+            Notification.objects.create(
+                user=user,
+                kind=Notification.Kind.EMAIL_VERIFICATION,
+                title="Adresse email vérifiée",
+                body="Votre adresse email a été vérifiée avec succès.",
+            )
         messages.success(request, "Votre adresse email est vérifiée. Vous pouvez vous connecter.")
         return redirect("accounts:login")
 

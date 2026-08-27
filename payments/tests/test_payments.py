@@ -280,6 +280,20 @@ def test_payout_and_reconciliation_are_audited(confirmed_booking):
 
 
 @pytest.mark.django_db
+def test_teacher_finance_endpoints_are_private():
+    teacher = get_user_model().objects.create_user(
+        email="teacher-finance-api@example.com", account_type="TEACHER"
+    )
+    client = APIClient()
+    client.force_authenticate(teacher)
+    summary = client.get("/api/v1/teacher/earnings/summary/")
+    assert summary.status_code == 200
+    assert summary.data["currency"] == "CDF"
+    assert client.get("/api/v1/teacher/transactions/").status_code == 200
+    assert client.get("/api/v1/teacher/payouts/").status_code == 200
+
+
+@pytest.mark.django_db
 def test_payment_api_and_receipt_access_are_private(client, confirmed_booking):
     learner, teacher, booking = confirmed_booking
     outsider = get_user_model().objects.create_user(

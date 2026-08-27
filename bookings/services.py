@@ -40,7 +40,7 @@ def create_booking(*, proposal, learner, start_at, end_at):
     )
     if proposal.learning_request.learner_id != learner.pk:
         raise PermissionDenied("Cette proposition ne vous appartient pas.")
-    if proposal.status != Proposal.Status.SENT:
+    if proposal.status not in (Proposal.Status.SENT, Proposal.Status.ACCEPTED):
         raise ValidationError("Cette proposition n'est plus disponible.")
     if hasattr(proposal, "booking"):
         raise ValidationError("Cette proposition possède déjà une réservation.")
@@ -79,6 +79,16 @@ def create_booking(*, proposal, learner, start_at, end_at):
         actor=learner,
         learning_request=proposal.learning_request,
         payload={"booking_id": str(booking.public_id)},
+    )
+    from notifications.models import Notification
+    from notifications.services import notify_users
+
+    notify_users(
+        users=(learner, teacher),
+        kind=Notification.Kind.BOOKING_CREATED,
+        title="Réservation créée",
+        body="Une nouvelle réservation a été créée.",
+        booking=booking,
     )
     return booking
 
@@ -204,6 +214,16 @@ def transition_booking(*, booking, actor, action, reason=""):
             actor=actor,
             learning_request=booking.proposal.learning_request,
             payload={"booking_id": str(booking.public_id), "session_id": session.pk},
+        )
+        from notifications.models import Notification
+        from notifications.services import notify_users
+
+        notify_users(
+            users=(booking.learner, booking.teacher),
+            kind=Notification.Kind.SESSION_COMPLETED,
+            title="Session terminée",
+            body="Votre session est terminée. Vous pouvez maintenant laisser un avis.",
+            booking=booking,
         )
     elif action in ("learner_no_show", "teacher_no_show"):
         session, _ = Session.objects.get_or_create(booking=booking)

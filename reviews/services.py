@@ -47,6 +47,16 @@ def create_review(*, session, reviewer, rating, punctuality, communication, qual
         learning_request=booking.proposal.learning_request,
         payload={"review_id": str(review.public_id), "session_id": session.pk},
     )
+    from notifications.models import Notification
+    from notifications.services import notify_users
+
+    notify_users(
+        users=(subject,),
+        kind=Notification.Kind.REVIEW_CREATED,
+        title="Nouvel avis reçu",
+        body="Un participant a publié un avis sur votre session.",
+        booking=booking,
+    )
     recalculate_teacher_trust_score(
         teacher_profile=booking.teacher.teacher_profile,
         source="review.created",

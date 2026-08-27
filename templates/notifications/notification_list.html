@@ -8,7 +8,7 @@
         {% for notification in notifications %}
             <article class="notification-row{% if not notification.read_at %} is-unread{% endif %}">
                 <span class="notification-icon"><i data-lucide="{% if notification.read_at %}check{% else %}bell{% endif %}" aria-hidden="true"></i></span>
-                <div><h2>{{ notification.title }}</h2><p>{{ notification.body }}</p><a href="{{ notification.booking.get_absolute_url }}">Voir la réservation <i data-lucide="arrow-right" aria-hidden="true"></i></a></div>
+                <div><h2>{{ notification.title }}</h2><p>{{ notification.body }}</p>{% if notification.booking %}<a href="{{ notification.booking.get_absolute_url }}">Voir la réservation <i data-lucide="arrow-right" aria-hidden="true"></i></a>{% elif notification.proposal %}<a href="{{ notification.proposal.learning_request.get_absolute_url }}">Voir la demande <i data-lucide="arrow-right" aria-hidden="true"></i></a>{% elif notification.learning_request %}<a href="{{ notification.learning_request.get_absolute_url }}">Voir la demande <i data-lucide="arrow-right" aria-hidden="true"></i></a>{% endif %}</div>
                 {% if not notification.read_at %}
                     <form method="post" action="{% url 'notifications:read' notification.pk %}">
                         {% csrf_token %}

@@ -42,5 +42,8 @@ class DetailedLearningRequestForm(forms.ModelForm):
 class ProposalForm(forms.ModelForm):
     class Meta:
         model = Proposal
-        fields = ("amount", "message")
-        widgets = {"message": forms.Textarea(attrs={"rows": 5})}
+        fields = ("amount", "message", "availability")
+        widgets = {
+            "message": forms.Textarea(attrs={"rows": 5}),
+            "availability": forms.Textarea(attrs={"rows": 3}),
+        }

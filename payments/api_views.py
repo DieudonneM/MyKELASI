@@ -3,13 +3,14 @@ import json
 from django.conf import settings
 from django.core.exceptions import PermissionDenied as DjangoPermissionDenied
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import BasePermission
 
 from bookings.models import Booking
 
@@ -83,3 +84,50 @@ class PaymentWebhookAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response({"status": payment.status, "changed": changed})
+
+
+class IsTeacher(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user.is_authenticated and request.user.account_type == "TEACHER")
+
+
+class TeacherEarningsSummaryAPIView(APIView):
+    permission_classes = (IsTeacher,)
+
+    def get(self, request):
+        payments = Payment.objects.filter(booking__teacher=request.user, status=Payment.Status.SUCCESS)
+        payouts = payments.filter(payout__isnull=False)
+        total = sum((payment.amount for payment in payments), 0)
+        paid = payouts.aggregate(value=Sum("payout__amount"))["value"] or 0
+        return Response({
+            "total_earnings": f"{total:.2f}",
+            "pending_balance": f"{total - paid:.2f}",
+            "paid_balance": f"{paid:.2f}",
+            "currency": "CDF",
+            "last_payout_at": payouts.order_by("-payout__created_at").values_list("payout__created_at", flat=True).first(),
+        })
+
+
+class TeacherTransactionListAPIView(generics.ListAPIView):
+    permission_classes = (IsTeacher,)
+    serializer_class = PaymentSerializer
+
+    def get_queryset(self):
+        return Payment.objects.filter(booking__teacher=self.request.user).select_related("booking")
+
+
+class TeacherPayoutListAPIView(generics.ListAPIView):
+    permission_classes = (IsTeacher,)
+
+    def get(self, request):
+        payouts = request.user.payouts.select_related("payment")
+        return Response({"results": [
+            {
+                "id": payout.pk,
+                "amount": str(payout.amount),
+                "status": payout.status.lower(),
+                "reference": str(payout.reference),
+                "paid_at": payout.created_at,
+            }
+            for payout in payouts
+        ]})

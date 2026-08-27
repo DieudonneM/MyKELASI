@@ -7,7 +7,26 @@ from django.utils import timezone
 
 from bookings.models import Booking
 
-from .models import Notification
+from .models import Notification, NotificationPreference
+
+
+def notify_users(
+    *, users, kind, title, body, booking=None, proposal=None, learning_request=None
+):
+    return Notification.objects.bulk_create(
+        [
+            Notification(
+                user=user,
+                kind=kind,
+                title=title,
+                body=body,
+                booking=booking,
+                proposal=proposal,
+                learning_request=learning_request,
+            )
+            for user in users
+        ]
+    )
 
 REMINDERS = (
     (
@@ -38,6 +57,9 @@ def _notification_content(booking, label):
 
 @transaction.atomic
 def _send_reminder(*, booking, user, kind, label):
+    preferences, _ = NotificationPreference.objects.get_or_create(user=user)
+    if not preferences.email or not preferences.booking_reminders:
+        return False
     title, body = _notification_content(booking, label)
     notification, _ = Notification.objects.select_for_update().get_or_create(
         user=user,

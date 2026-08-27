@@ -26,12 +26,20 @@
                 <h3>{{ proposal.teacher }}</h3>
                 <p>{{ proposal.amount }} CDF</p>
                 <p>{{ proposal.message }}</p>
+                {% if proposal.availability %}<p>Disponibilité : {{ proposal.availability }}</p>{% endif %}
+                <p>Statut : {{ proposal.get_status_display }}</p>
                 <form method="post" action="{% url 'messaging:start' proposal.public_id %}">
                     {% csrf_token %}
                     <button type="submit">Contacter</button>
                 </form>
                 <p><a href="{% url 'messaging:report-target' 'proposal' proposal.public_id %}">Signaler cette proposition</a></p>
                 {% if proposal.status == "SENT" %}
+                    <form method="post" action="{% url 'learning:proposal-action' proposal.public_id 'accept' %}" onsubmit="return confirm('Accepter cette proposition ?');">
+                        {% csrf_token %}<button type="submit">Accepter</button>
+                    </form>
+                    <form method="post" action="{% url 'learning:proposal-action' proposal.public_id 'reject' %}" onsubmit="return confirm('Refuser cette proposition ?');">
+                        {% csrf_token %}<button type="submit">Refuser</button>
+                    </form>
                     <p><a href="{% url 'bookings:create' proposal.public_id %}">Choisir cette proposition</a></p>
                 {% endif %}
             </article>

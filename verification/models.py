@@ -11,11 +11,32 @@ def private_document_path(instance, filename):
     return f"verification/{instance.user_id}/{uuid.uuid4()}.{extension}"
 
 
+def upload_chunk_path(instance, filename):
+    return f"verification/{instance.user_id}/uploads/{instance.public_id}.part"
+
+
 class VerificationStatus(models.TextChoices):
     PENDING = "PENDING", "En attente"
     APPROVED = "APPROVED", "Approuvé"
     REJECTED = "REJECTED", "Refusé"
     EXPIRED = "EXPIRED", "Expiré"
+
+
+class VerificationUpload(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    document_type = models.CharField(max_length=20)
+    title = models.CharField(max_length=180, blank=True)
+    institution = models.CharField(max_length=180, blank=True)
+    issued_year = models.PositiveSmallIntegerField(null=True, blank=True)
+    file_name = models.CharField(max_length=255)
+    file_size = models.PositiveIntegerField()
+    received_size = models.PositiveIntegerField(default=0)
+    chunk_file = models.FileField(upload_to=upload_chunk_path)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
 
 
 class IdentityVerification(models.Model):

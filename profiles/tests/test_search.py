@@ -186,3 +186,20 @@ def test_api_search_paginates_twelve_teachers():
     assert response.data["count"] == 13
     assert len(response.data["results"]) == 12
     assert response.data["next"] is not None
+
+
+@pytest.mark.django_db
+def test_api_teacher_detail_is_public_and_contains_only_public_fields():
+    subject = Subject.objects.first()
+    area = ServiceArea.objects.first()
+    teacher = create_teacher("detail@example.com", "Detail", "20000", subject, area)
+
+    response = APIClient().get(
+        reverse("profiles-api:teacher-detail", kwargs={"public_id": teacher.public_id})
+    )
+
+    assert response.status_code == 200
+    assert response.data["public_id"] == str(teacher.public_id)
+    assert "email" not in response.data
+    assert "phone_number" not in response.data
+    assert response.data["public_profile"]["verified_email"] is True

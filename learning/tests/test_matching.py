@@ -15,6 +15,7 @@ from learning.models import LearningEvent, LearningRequest, MatchResult, Proposa
 from learning.services import _score_teacher, generate_matches
 from profiles.models import Availability, Level, ServiceArea, Subject, TeachingMode
 from reviews.models import Review
+from notifications.models import Notification
 
 
 def create_teacher(email, name, subject, level, mode, area, rate):
@@ -87,11 +88,27 @@ def test_matching_is_ranked_explained_and_limited(learning_data):
     assert "Budget compatible" in results[0].reasons
     assert request.matches.count() == 2
     assert request.events.filter(name=LearningEvent.Name.MATCH_CREATED).count() == 1
-
     generate_matches(request)
-
     assert request.events.filter(name=LearningEvent.Name.MATCH_CREATED).count() == 1
 
+
+@pytest.mark.django_db
+def test_teacher_matching_contract_lists_requests_and_creates_proposal(learning_data):
+    request, subject, level, mode, area = learning_data
+    teacher = create_teacher("contract-teacher@example.com", "Aline", subject, level, mode, area, "20000")
+    generate_matches(request)
+    client = APIClient()
+    client.force_authenticate(teacher.user)
+    matched = client.get("/api/v1/teacher/matched-requests/")
+    assert matched.status_code == 200
+    assert matched.data["results"][0]["match_reasons"]
+    proposal = client.post(
+        f"/api/v1/teacher/proposals/{request.pk}/",
+        {"hourly_rate": "20000", "message": "Je peux vous accompagner efficacement.", "availability": "Lundi 8h"},
+        format="json",
+    )
+    assert proposal.status_code == 201
+    assert proposal.data["request_id"] == request.pk
 
 @pytest.mark.django_db
 def test_learner_sees_match_score_reasons_on_request_detail(client, learning_data):
@@ -424,3 +441,63 @@ def test_api_matched_teacher_can_create_only_one_proposal(learning_data):
     )
 
     assert closed_response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_learner_can_accept_one_proposal_and_lock_the_others(learning_data):
+    request, subject, level, mode, area = learning_data
+    first = create_teacher("first-choice@example.com", "Alice", subject, level, mode, area, "18000")
+    second = create_teacher("second-choice@example.com", "Bruno", subject, level, mode, area, "20000")
+    generate_matches(request)
+    first_proposal = Proposal.objects.create(
+        learning_request=request, teacher=first, amount=18000, message="Je suis disponible.",
+    )
+    second_proposal = Proposal.objects.create(
+        learning_request=request, teacher=second, amount=20000, message="Je peux vous aider.",
+    )
+    client = APIClient()
+    client.force_authenticate(request.learner)
+
+    response = client.post(
+        reverse("learning-api:proposal-action", args=(first_proposal.public_id, "accept")),
+    )
+
+    assert response.status_code == 200
+    first_proposal.refresh_from_db()
+    second_proposal.refresh_from_db()
+    request.refresh_from_db()
+    assert first_proposal.status == Proposal.Status.ACCEPTED
+    assert second_proposal.status == Proposal.Status.REJECTED
+    assert request.status == LearningRequest.Status.CLOSED
+    assert request.events.filter(name=LearningEvent.Name.PROPOSAL_ACCEPTED).count() == 1
+    assert Notification.objects.filter(
+        proposal=first_proposal,
+        kind=Notification.Kind.PROPOSAL_ACCEPTED,
+    ).count() == 2
+
+    repeated = client.post(
+        reverse("learning-api:proposal-action", args=(first_proposal.public_id, "accept")),
+    )
+    assert repeated.status_code == 200
+    assert request.events.filter(name=LearningEvent.Name.PROPOSAL_ACCEPTED).count() == 1
+
+
+@pytest.mark.django_db
+def test_only_owner_can_reject_a_proposal(learning_data):
+    request, subject, level, mode, area = learning_data
+    teacher = create_teacher("reject-teacher@example.com", "Alice", subject, level, mode, area, "18000")
+    generate_matches(request)
+    proposal = Proposal.objects.create(
+        learning_request=request, teacher=teacher, amount=18000, message="Je suis disponible.",
+    )
+    client = APIClient()
+    other = get_user_model().objects.create_user(email="other-learner@example.com", account_type="LEARNER")
+    client.force_authenticate(other)
+
+    response = client.post(
+        reverse("learning-api:proposal-action", args=(proposal.public_id, "reject")),
+    )
+
+    assert response.status_code == 403
+    proposal.refresh_from_db()
+    assert proposal.status == Proposal.Status.SENT

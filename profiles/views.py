@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from django.views.generic import DetailView, FormView, ListView, TemplateView, UpdateView
 
 from accounts.models import User
+from verification.models import IdentityVerification, ProfessionalCredential, VerificationStatus
 
 from .filters import TeacherSearchFilter
 from .forms import LearnerProfileForm, TeacherIdentityForm, TeacherOfferForm, TeacherPublishForm
@@ -138,6 +139,18 @@ class TeacherPublicDetailView(DetailView):
             status="PUBLISHED"
         ).select_related("reviewer", "response")
         context["trust_score"] = self.object.trust_score_snapshots.first()
+        context["verification"] = {
+            "email": self.object.user.email_verified,
+            "phone": self.object.user.phone_verified,
+            "identity": IdentityVerification.objects.filter(
+                user=self.object.user, status=VerificationStatus.APPROVED
+            ).exists(),
+            "diploma": ProfessionalCredential.objects.filter(
+                user=self.object.user,
+                credential_type=ProfessionalCredential.CredentialType.DIPLOMA,
+                status=VerificationStatus.APPROVED,
+            ).exists(),
+        }
         return context
 
 

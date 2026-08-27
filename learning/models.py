@@ -133,6 +133,7 @@ class Proposal(models.Model):
         validators=[MinValueValidator(0)],
     )
     message = models.TextField(max_length=1500)
+    availability = models.CharField(max_length=500, blank=True)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.SENT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -155,6 +156,8 @@ class LearningEvent(models.Model):
         REQUEST_CREATED = "request.created", "Demande créée"
         MATCH_CREATED = "match.created", "Matching créé"
         PROPOSAL_SENT = "proposal.sent", "Proposition envoyée"
+        PROPOSAL_ACCEPTED = "proposal.accepted", "Proposition acceptée"
+        PROPOSAL_REJECTED = "proposal.rejected", "Proposition refusée"
         BOOKING_CREATED = "booking.created", "Réservation créée"
         SESSION_COMPLETED = "session.completed", "Session terminée"
         REVIEW_CREATED = "review.created", "Avis créé"

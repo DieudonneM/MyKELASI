@@ -1,14 +1,20 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import BasePermission
 
 from accounts.models import User
 
 from .models import LearningEvent, LearningRequest, Proposal
-from .serializers import LearningRequestSerializer, MatchResultSerializer, ProposalSerializer
-from .services import generate_matches
+from .serializers import LearningRequestSerializer, MatchResultSerializer, ProposalSerializer, TeacherMatchedRequestSerializer
+from .services import accept_proposal, generate_matches, reject_proposal
+
+
+class IsTeacher(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user.is_authenticated and request.user.account_type == User.AccountType.TEACHER)
 
 
 class LearningRequestListCreateAPIView(generics.ListCreateAPIView):
@@ -99,3 +105,52 @@ class ProposalListCreateAPIView(generics.ListCreateAPIView):
             learning_request=learning_request,
             payload={"proposal_id": str(proposal.public_id)},
         )
+
+
+class ProposalActionAPIView(APIView):
+    def post(self, request, public_id, action):
+        proposal = get_object_or_404(Proposal, public_id=public_id)
+        if action == "accept":
+            handler = accept_proposal
+        elif action == "reject":
+            handler = reject_proposal
+        else:
+            raise ValidationError("Action de proposition inconnue.")
+        try:
+            proposal = handler(proposal_id=proposal.public_id, learner=request.user)
+        except PermissionError as error:
+            raise PermissionDenied(str(error)) from None
+        except ValueError as error:
+            raise ValidationError(str(error)) from None
+        return Response(ProposalSerializer(proposal).data, status=status.HTTP_200_OK)
+
+
+class TeacherMatchedRequestListAPIView(generics.ListAPIView):
+    permission_classes = (IsTeacher,)
+    serializer_class = TeacherMatchedRequestSerializer
+
+    def get_queryset(self):
+        return LearningRequest.objects.filter(
+            matches__teacher__user=self.request.user
+        ).select_related("learner", "subject", "level", "teaching_mode", "service_area").distinct()
+
+
+class TeacherProposalListCreateAPIView(generics.ListCreateAPIView):
+    permission_classes = (IsTeacher,)
+    serializer_class = ProposalSerializer
+
+    def get_queryset(self):
+        return Proposal.objects.filter(teacher__user=self.request.user).select_related("teacher__user", "learning_request")
+
+    def create(self, request, *args, **kwargs):
+        request_obj = get_object_or_404(
+            LearningRequest,
+            pk=kwargs["request_id"],
+            matches__teacher__user=request.user,
+        )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if Proposal.objects.filter(learning_request=request_obj, teacher=request.user.teacher_profile).exists():
+            raise ValidationError("Vous avez déjà envoyé une proposition.")
+        proposal = serializer.save(learning_request=request_obj, teacher=request.user.teacher_profile)
+        return Response(self.get_serializer(proposal).data, status=status.HTTP_201_CREATED)

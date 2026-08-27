@@ -7,6 +7,7 @@ from .views import (
     LearningRequestListView,
     ProposalCreateView,
 )
+from .views import ProposalActionView
 
 app_name = "learning"
 
@@ -24,4 +25,5 @@ urlpatterns = [
         ProposalCreateView.as_view(),
         name="proposal-create",
     ),
+    path("propositions/<uuid:public_id>/<str:action>/", ProposalActionView.as_view(), name="proposal-action"),
 ]

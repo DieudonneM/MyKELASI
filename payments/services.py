@@ -172,6 +172,16 @@ def process_payment_webhook(*, payload, raw_payload):
         payment.save(update_fields=("status", "updated_at"))
         if new_status == Payment.Status.SUCCESS:
             _post_success_ledger(payment)
+            from notifications.models import Notification
+            from notifications.services import notify_users
+
+            notify_users(
+                users=(payment.payer, payment.booking.teacher),
+                kind=Notification.Kind.PAYMENT_COMPLETED,
+                title="Paiement confirmé",
+                body="Le paiement de votre réservation a été confirmé.",
+                booking=payment.booking,
+            )
             LearningEvent.objects.create(
                 name=LearningEvent.Name.PAYMENT_COMPLETED,
                 actor=payment.payer,

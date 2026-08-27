@@ -188,77 +188,77 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ### Backend/API
 
-- [ ] Stabiliser `GET /api/v1/teachers/`.
-- [ ] Filtrer matière, niveau, mode, zone et budget.
-- [ ] Ajouter pagination, tri et recherche textuelle si nécessaire.
-- [ ] Retourner uniquement profils publics et actifs.
-- [ ] Masquer adresse précise, téléphone et documents.
-- [ ] Retourner tarif, devise, vérifications, réputation, disponibilité et zones publiques.
-- [ ] Tester aucun résultat, profil non public et accès anonyme.
+- [x] Stabiliser `GET /api/v1/teachers/`.
+- [x] Filtrer matière, niveau, mode, zone et budget.
+- [x] Ajouter pagination, tri et recherche textuelle si nécessaire.
+- [x] Retourner uniquement profils publics et actifs.
+- [x] Masquer adresse précise, téléphone et documents.
+- [x] Retourner tarif, devise, vérifications, réputation, disponibilité et zones publiques.
+- [x] Tester aucun résultat, profil non public et accès anonyme.
 
 ### Web
 
-- [ ] Page de recherche des Formateurs.
-- [ ] Filtres utilisables sur mobile.
-- [ ] Cartes de résultats comparables.
-- [ ] Page publique détaillée d'un Formateur.
-- [ ] Affichage séparé identité, diplôme, téléphone et email vérifiés.
-- [ ] Affichage des avis publiés.
+- [x] Page de recherche des Formateurs.
+- [x] Filtres utilisables sur mobile.
+- [x] Cartes de résultats comparables.
+- [x] Page publique détaillée d'un Formateur.
+- [x] Affichage séparé identité, diplôme, téléphone et email vérifiés.
+- [x] Affichage des avis publiés.
 
 ### Flutter
 
-- [ ] Écran liste des Formateurs.
-- [ ] Filtres et remise à zéro.
-- [ ] Pagination ou chargement progressif.
-- [ ] Écran détail public Formateur.
-- [ ] Écran comparaison de plusieurs Formateurs.
-- [ ] Tests état vide, erreur réseau, filtres et écran étroit.
+- [x] Écran liste des Formateurs.
+- [x] Filtres et remise à zéro.
+- [x] Pagination ou chargement progressif.
+- [x] Écran détail public Formateur.
+- [x] Écran comparaison de plusieurs Formateurs.
+- [x] Tests état vide, erreur réseau, filtres et écran étroit.
 
 ## Étape 3.2 - Création d'une demande
 
 ### Backend/API
 
-- [ ] Valider `LearningRequest` : matière, niveau, mode, zone, budget, date, heure, fréquence et description.
-- [ ] `GET /api/v1/requests/` ne retourne que les demandes de l'Apprenant connecté.
-- [ ] `POST /api/v1/requests/` vérifie rôle, référentiels actifs et champs cohérents.
-- [ ] Vérifier que date et heure sont renseignées ensemble ou toutes deux absentes.
-- [ ] Générer les matches après création.
-- [ ] Enregistrer `request.created` et `match.created`.
-- [ ] Tester montants, longueurs, dates passées, référentiels inactifs et double soumission.
+- [x] Valider `LearningRequest` : matière, niveau, mode, zone, budget, date, heure, fréquence et description.
+- [x] `GET /api/v1/requests/` ne retourne que les demandes de l'Apprenant connecté.
+- [x] `POST /api/v1/requests/` vérifie rôle, référentiels actifs et champs cohérents.
+- [x] Vérifier que date et heure sont renseignées ensemble ou toutes deux absentes.
+- [x] Générer les matches après création.
+- [x] Enregistrer `request.created` et `match.created`.
+- [x] Tester montants, longueurs, dates passées, référentiels inactifs et double soumission.
 
 ### Web
 
-- [ ] Formulaire demande courte.
-- [ ] Formulaire demande détaillée.
-- [ ] Résumé et confirmation avant envoi.
-- [ ] Liste de mes demandes.
-- [ ] Détail d'une demande et son statut.
-- [ ] Modification ou fermeture selon les règles métier.
+- [x] Formulaire demande courte.
+- [x] Formulaire demande détaillée.
+- [x] Résumé et confirmation avant envoi.
+- [x] Liste de mes demandes.
+- [x] Détail d'une demande et son statut.
+- [x] Modification ou fermeture selon les règles métier.
 
 ### Flutter
 
-- [ ] Remplacer le placeholder `CreateRequestScreen`.
-- [ ] Créer modèle, repository et controller de demande.
-- [ ] Sélecteurs matières, niveaux, modes et zones depuis l'API.
-- [ ] Champ budget CDF sans perte de précision.
-- [ ] Sélection date/heure et fréquence.
-- [ ] Description avec compteur et validation.
-- [ ] Désactiver le bouton pendant l'envoi.
-- [ ] Afficher erreurs globales et erreurs par champ.
-- [ ] Rediriger vers détail/matches après succès serveur.
-- [ ] Ajouter écran liste et détail des demandes.
+- [x] Remplacer le placeholder `CreateRequestScreen`.
+- [x] Créer modèle, repository et controller de demande.
+- [x] Sélecteurs matières, niveaux, modes et zones depuis l'API.
+- [x] Champ budget CDF sans perte de précision.
+- [x] Sélection date/heure et fréquence.
+- [x] Description avec compteur et validation.
+- [x] Désactiver le bouton pendant l'envoi.
+- [x] Afficher erreurs globales et erreurs par champ.
+- [x] Rediriger vers détail/matches après succès serveur.
+- [x] Ajouter écran liste et détail des demandes.
 
 ## Étape 3.3 - Matching explicable
 
-- [ ] Définir et versionner les pondérations du score.
-- [ ] Inclure matière, niveau, mode, zone, budget, disponibilité, fiabilité, réputation et taux de réponse.
-- [ ] Exclure tout avantage Premium du classement organique.
-- [ ] Retourner les raisons lisibles du match.
-- [ ] Garantir ordre stable et pagination cohérente.
-- [ ] Tester qu'une modification de critère modifie le score de façon prévisible.
-- [ ] Écran Apprenant des matches pour chaque demande.
-- [ ] Afficher score, raisons, tarif, disponibilité et vérifications.
-- [ ] Permettre sélection pour comparaison et consultation du profil.
+- [x] Définir et versionner les pondérations du score.
+- [x] Inclure matière, niveau, mode, zone, budget, disponibilité, fiabilité, réputation et taux de réponse.
+- [x] Exclure tout avantage Premium du classement organique.
+- [x] Retourner les raisons lisibles du match.
+- [x] Garantir ordre stable et pagination cohérente.
+- [x] Tester qu'une modification de critère modifie le score de façon prévisible.
+- [x] Écran Apprenant des matches pour chaque demande.
+- [x] Afficher score, raisons, tarif, disponibilité et vérifications.
+- [x] Permettre sélection pour comparaison et consultation du profil.
 
 ---
 
@@ -266,24 +266,24 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 4.1 - Réception des propositions
 
-- [ ] `GET /api/v1/requests/{id}/proposals/` réservé au propriétaire ou au Formateur autorisé.
-- [ ] Afficher montant, message, disponibilité, statut et identité publique du Formateur.
-- [ ] Distinguer envoyée, acceptée, refusée et retirée.
-- [ ] Empêcher une proposition après fermeture de la demande.
-- [ ] Ajouter événements `proposal.sent` et changement de statut.
-- [ ] Créer page Web et écran Flutter de liste des propositions.
+- [x] `GET /api/v1/requests/{id}/proposals/` réservé au propriétaire ou au Formateur autorisé.
+- [x] Afficher montant, message, disponibilité, statut et identité publique du Formateur.
+- [x] Distinguer envoyée, acceptée, refusée et retirée.
+- [x] Empêcher une proposition après fermeture de la demande.
+- [x] Ajouter événements `proposal.sent` et changement de statut.
+- [x] Créer page Web et écran Flutter de liste des propositions.
 
 ## Étape 4.2 - Acceptation et refus
 
-- [ ] Définir l'endpoint d'acceptation d'une proposition.
-- [ ] Définir l'endpoint de refus ou de rejet par l'Apprenant.
-- [ ] Garantir une seule proposition acceptée par demande.
-- [ ] Fermer ou verrouiller les autres propositions selon la règle métier.
-- [ ] Créer la réservation uniquement selon le flux validé.
-- [ ] Protéger l'action par transaction et idempotence.
-- [ ] Notifier l'Apprenant et le Formateur.
-- [ ] Tester courses concurrentes, double clic, proposition inconnue et demande fermée.
-- [ ] Ajouter boutons et confirmations Web/Flutter avec état serveur, jamais optimiste.
+- [x] Définir l'endpoint d'acceptation d'une proposition.
+- [x] Définir l'endpoint de refus ou de rejet par l'Apprenant.
+- [x] Garantir une seule proposition acceptée par demande.
+- [x] Fermer ou verrouiller les autres propositions selon la règle métier.
+- [x] Créer la réservation uniquement selon le flux validé.
+- [x] Protéger l'action par transaction et idempotence.
+- [x] Notifier l'Apprenant et le Formateur.
+- [x] Tester courses concurrentes, double clic, proposition inconnue et demande fermée.
+- [x] Ajouter boutons et confirmations Web/Flutter avec état serveur, jamais optimiste.
 
 ---
 
@@ -293,41 +293,41 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ### Backend/API
 
-- [ ] `POST /api/v1/bookings/` réservé à l'Apprenant.
-- [ ] Vérifier proposition acceptée, participants, date, durée, mode, zone et prix.
-- [ ] Vérifier conflit de créneau dans une transaction atomique.
-- [ ] Figer montant, devise et politique d'annulation dans la réservation.
-- [ ] Enregistrer `booking.created`.
-- [ ] Créer les transitions avec auteur, date et motif.
+- [x] `POST /api/v1/bookings/` réservé à l'Apprenant.
+- [x] Vérifier proposition acceptée, participants, date, durée, mode, zone et prix.
+- [x] Vérifier conflit de créneau dans une transaction atomique.
+- [x] Figer montant, devise et politique d'annulation dans la réservation.
+- [x] Enregistrer `booking.created`.
+- [x] Créer les transitions avec auteur, date et motif.
 
 ### Web et Flutter
 
-- [ ] Écran de résumé avant confirmation.
-- [ ] Écran de sélection date/heure compatible avec la disponibilité.
-- [ ] Afficher Formateur, matière, mode, zone approximative, durée, prix et politique.
-- [ ] Afficher confirmation serveur et identifiant public.
-- [ ] Ne révéler les coordonnées privées qu'après confirmation et selon règle validée.
+- [x] Écran de résumé avant confirmation.
+- [x] Écran de sélection date/heure compatible avec la disponibilité.
+- [x] Afficher Formateur, matière, mode, zone approximative, durée, prix et politique.
+- [x] Afficher confirmation serveur et identifiant public.
+- [x] Ne révéler les coordonnées privées qu'après confirmation et selon règle validée.
 
 ## Étape 5.2 - Liste et détail des réservations Apprenant
 
-- [ ] Créer page Web des réservations Apprenant.
-- [ ] Créer écran Flutter dédié Apprenant, distinct des actions Formateur.
-- [ ] Filtres : à venir, passées, annulées, contestées.
-- [ ] Afficher statuts `PENDING`, `CONFIRMED`, `REJECTED`, `CANCELLED`, `COMPLETED`, `NO_SHOW`, `DISPUTED`.
-- [ ] Afficher historique des transitions.
-- [ ] Permettre annulation selon la politique.
-- [ ] Permettre ouverture d'un litige selon les règles.
-- [ ] Tester qu'un Apprenant ne peut pas confirmer, refuser ou marquer la présence du Formateur.
+- [x] Créer page Web des réservations Apprenant.
+- [x] Créer écran Flutter dédié Apprenant, distinct des actions Formateur.
+- [x] Filtres : à venir, passées, annulées, contestées.
+- [x] Afficher statuts `PENDING`, `CONFIRMED`, `REJECTED`, `CANCELLED`, `COMPLETED`, `NO_SHOW`, `DISPUTED`.
+- [x] Afficher historique des transitions.
+- [x] Permettre annulation selon la politique.
+- [x] Permettre ouverture d'un litige selon les règles.
+- [x] Tester qu'un Apprenant ne peut pas confirmer, refuser ou marquer la présence du Formateur.
 
 ## Étape 5.3 - Réalisation de session
 
-- [ ] Créer ou confirmer la machine de session : présence, début, fin, résultat.
-- [ ] Définir qui peut marquer présence, absence et fin de session.
-- [ ] Gérer session en ligne, domicile, lieu public et centre.
-- [ ] Envoyer rappels avant session.
-- [ ] Enregistrer `session.completed` uniquement après transition valide.
-- [ ] Afficher session à venir, en cours, terminée et litigieuse.
-- [ ] Tester absences, fin avant début, double présence et actions hors délai.
+- [x] Créer ou confirmer la machine de session : présence, début, fin, résultat.
+- [x] Définir qui peut marquer présence, absence et fin de session.
+- [x] Gérer session en ligne, domicile, lieu public et centre.
+- [x] Envoyer rappels avant session.
+- [x] Enregistrer `session.completed` uniquement après transition valide.
+- [x] Afficher session à venir, en cours, terminée et litigieuse.
+- [x] Tester absences, fin avant début, double présence et actions hors délai.
 
 ---
 
@@ -335,34 +335,34 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 6.1 - Paiement
 
-- [ ] Choisir et configurer le prestataire Mobile Money sandbox.
-- [ ] `POST /api/v1/bookings/{id}/payments/` réservé à l'Apprenant de la réservation confirmée.
-- [ ] Exiger et persister `Idempotency-Key`.
-- [ ] Afficher montant et devise issus du serveur.
-- [ ] Ne jamais confirmer un paiement depuis le seul client.
-- [ ] Créer écran Web de paiement.
-- [ ] Créer écran Flutter de paiement Apprenant, distinct des revenus Formateur.
-- [ ] Gérer initiation, attente, succès, échec, annulation et reprise.
-- [ ] Ne jamais stocker de secret Mobile Money dans Flutter.
+- [x] Choisir et configurer le prestataire Mobile Money sandbox.
+- [x] `POST /api/v1/bookings/{id}/payments/` réservé à l'Apprenant de la réservation confirmée.
+- [x] Exiger et persister `Idempotency-Key`.
+- [x] Afficher montant et devise issus du serveur.
+- [x] Ne jamais confirmer un paiement depuis le seul client.
+- [x] Créer écran Web de paiement.
+- [x] Créer écran Flutter de paiement Apprenant, distinct des revenus Formateur.
+- [x] Gérer initiation, attente, succès, échec, annulation et reprise.
+- [x] Ne jamais stocker de secret Mobile Money dans Flutter.
 
 ## Étape 6.2 - Webhook et rapprochement
 
-- [ ] Vérifier signature, référence, montant et devise côté serveur.
-- [ ] Rendre le webhook idempotent et transactionnel.
-- [ ] Tester double webhook et payload falsifié.
-- [ ] Créer ledger immuable et équilibré.
-- [ ] Enregistrer `payment.completed` une seule fois.
-- [ ] Prévoir remboursement, litige financier et rapprochement manuel.
-- [ ] Ajouter accès au reçu uniquement aux participants concernés.
+- [x] Vérifier signature, référence, montant et devise côté serveur.
+- [x] Rendre le webhook idempotent et transactionnel.
+- [x] Tester double webhook et payload falsifié.
+- [x] Créer ledger immuable et équilibré.
+- [x] Enregistrer `payment.completed` une seule fois.
+- [x] Prévoir remboursement, litige financier et rapprochement manuel.
+- [x] Ajouter accès au reçu uniquement aux participants concernés.
 
 ## Étape 6.3 - Historique financier Apprenant
 
-- [ ] Page Web des paiements et reçus.
-- [ ] Écran Flutter historique des paiements.
-- [ ] Détail référence, date, montant, devise et statut.
-- [ ] Téléchargement ou affichage sécurisé du reçu.
-- [ ] Afficher remboursement et motif lorsqu'il existe.
-- [ ] Tester accès à un paiement d'un autre utilisateur.
+- [x] Page Web des paiements et reçus.
+- [x] Écran Flutter historique des paiements.
+- [x] Détail référence, date, montant, devise et statut.
+- [x] Téléchargement ou affichage sécurisé du reçu.
+- [x] Afficher remboursement et motif lorsqu'il existe.
+- [x] Tester accès à un paiement d'un autre utilisateur.
 
 ---
 
@@ -370,35 +370,35 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 7.1 - Messagerie sécurisée
 
-- [ ] Créer une conversation liée à une demande, proposition ou réservation selon la règle choisie.
-- [ ] Autoriser uniquement participants et personnel habilité en cas de signalement.
-- [ ] Ajouter pagination, marquage lu et actualisation.
-- [ ] Valider longueur et contenu des messages.
-- [ ] Limiter le débit et lutter contre spam.
-- [ ] Permettre signalement d'une conversation ou d'un message.
-- [ ] Créer liste et détail Web/Flutter pour l'Apprenant.
-- [ ] Tester IDOR, message vide, message trop long et participant tiers.
+- [x] Créer une conversation liée à une demande, proposition ou réservation selon la règle choisie.
+- [x] Autoriser uniquement participants et personnel habilité en cas de signalement.
+- [x] Ajouter pagination, marquage lu et actualisation.
+- [x] Valider longueur et contenu des messages.
+- [x] Limiter le débit et lutter contre spam.
+- [x] Permettre signalement d'une conversation ou d'un message.
+- [x] Créer liste et détail Web/Flutter pour l'Apprenant.
+- [x] Tester IDOR, message vide, message trop long et participant tiers.
 
 ## Étape 7.2 - Notifications
 
-- [ ] Modèle notification et préférences par canal.
-- [ ] Notifications pour vérification, match, proposition, réservation, rappel, paiement, session et avis.
-- [ ] `GET /api/v1/notifications/` et actions de lecture.
-- [ ] Préférences email, push et Web selon disponibilité V1.
-- [ ] Liens profonds vers l'objet concerné.
-- [ ] Écrans Web/Flutter liste, non-lu, tout marquer lu et retry.
-- [ ] Ne pas mettre en cache de données privées dans un cache public.
+- [x] Modèle notification et préférences par canal.
+- [x] Notifications pour vérification, match, proposition, réservation, rappel, paiement, session et avis.
+- [x] `GET /api/v1/notifications/` et actions de lecture.
+- [x] Préférences email, push et Web selon disponibilité V1.
+- [x] Liens profonds vers l'objet concerné.
+- [x] Écrans Web/Flutter liste, non-lu, tout marquer lu et retry.
+- [x] Ne pas mettre en cache de données privées dans un cache public.
 
 ## Étape 7.3 - Avis Apprenant
 
-- [ ] Autoriser un avis seulement pour une session `COMPLETED`.
-- [ ] Garantir un avis par participant et session selon la règle approuvée.
-- [ ] Champs note, commentaire, ponctualité, communication et qualité si retenus.
-- [ ] Créer formulaire Web et écran Flutter après session terminée.
-- [ ] Afficher erreurs, confirmation et impossibilité de doublon.
-- [ ] Publier l'avis après modération/règles définies.
-- [ ] Recalculer Trust Score de manière reproductible.
-- [ ] Permettre signalement d'un avis et masquer avec motif audité.
+- [x] Autoriser un avis seulement pour une session `COMPLETED`.
+- [x] Garantir un avis par participant et session selon la règle approuvée.
+- [x] Champs note, commentaire, ponctualité, communication et qualité si retenus.
+- [x] Créer formulaire Web et écran Flutter après session terminée.
+- [x] Afficher erreurs, confirmation et impossibilité de doublon.
+- [x] Publier l'avis après modération/règles définies.
+- [x] Recalculer Trust Score de manière reproductible.
+- [x] Permettre signalement d'un avis et masquer avec motif audité.
 
 ---
 
@@ -406,45 +406,45 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 8.1 - Compte et profil
 
-- [ ] Inscription Formateur et vérification email.
-- [ ] Guards Flutter pour rôle `TEACHER`.
-- [ ] Profil privé, identité, titre, bio, expérience, langues et tarif CDF.
-- [ ] Sélection matières, niveaux, modes et zones depuis le catalogue API.
-- [ ] Complétion calculée par le backend.
-- [ ] Affichage des prérequis manquants.
-- [ ] Publication/dépublication confirmée par la réponse serveur.
+- [x] Inscription Formateur et vérification email.
+- [x] Guards Flutter pour rôle `TEACHER`.
+- [x] Profil privé, identité, titre, bio, expérience, langues et tarif CDF.
+- [x] Sélection matières, niveaux, modes et zones depuis le catalogue API.
+- [x] Complétion calculée par le backend.
+- [x] Affichage des prérequis manquants.
+- [x] Publication/dépublication confirmée par la réponse serveur.
 - [ ] Tests du contrat profil et des erreurs 400/401/403/404/409.
 
 ## Étape 8.2 - Vérification et disponibilités
 
-- [ ] Dépôt privé de documents d'identité et certifications.
-- [ ] Contrôle type MIME, extension, taille et stockage privé.
-- [ ] Statuts `pending`, `approved`, `rejected`, `expired`.
-- [ ] Motif de rejet et nouveau dépôt.
-- [ ] CRUD disponibilités hebdomadaires.
-- [ ] Contrôle fin supérieure au début et chevauchements.
+- [x] Dépôt privé de documents d'identité et certifications.
+- [x] Contrôle type MIME, extension, taille et stockage privé.
+- [x] Statuts `pending`, `approved`, `rejected`, `expired`.
+- [x] Motif de rejet et nouveau dépôt.
+- [x] CRUD disponibilités hebdomadaires.
+- [x] Contrôle fin supérieure au début et chevauchements.
 - [ ] Tests mobile réel, upload interrompu et reprise.
 
 ## Étape 8.3 - Demandes, propositions et sessions
 
-- [ ] Liste des demandes matchées avec raisons.
-- [ ] Détail demande et formulaire de proposition.
-- [ ] Prix, message et disponibilité validés côté serveur.
-- [ ] Suivi des propositions envoyées.
-- [ ] Liste des réservations avec actions limitées au rôle Formateur.
-- [ ] Présence, absence, fin de session et litige.
-- [ ] Messagerie avec Apprenant sans exposition automatique du téléphone.
+- [x] Liste des demandes matchées avec raisons.
+- [x] Détail demande et formulaire de proposition.
+- [x] Prix, message et disponibilité validés côté serveur.
+- [x] Suivi des propositions envoyées.
+- [x] Liste des réservations avec actions limitées au rôle Formateur.
+- [x] Présence, absence, fin de session et litige.
+- [x] Messagerie avec Apprenant sans exposition automatique du téléphone.
 
 ## Étape 8.4 - Revenus et réputation
 
-- [ ] Résumé revenus, transactions et versements.
-- [ ] Commission calculée côté serveur.
-- [ ] Historique des paiements reçus et statuts.
-- [ ] Consultation des avis.
-- [ ] Réponse à un avis selon la règle approuvée.
-- [ ] Trust Score affiché avec composantes compréhensibles.
-- [ ] Notifications et paramètres Formateur.
-- [ ] Tester que le Formateur ne peut pas modifier le paiement de l'Apprenant.
+- [x] Résumé revenus, transactions et versements.
+- [x] Commission calculée côté serveur.
+- [x] Historique des paiements reçus et statuts.
+- [x] Consultation des avis.
+- [x] Réponse à un avis selon la règle approuvée.
+- [x] Trust Score affiché avec composantes compréhensibles.
+- [x] Notifications et paramètres Formateur.
+- [x] Tester que le Formateur ne peut pas modifier le paiement de l'Apprenant.
 
 ---
 

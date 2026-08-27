@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from verification.models import IdentityVerification, VerificationStatus
+
 from .models import Availability, LearnerProfile, Level, ServiceArea, Subject, TeacherProfile, TeachingMode
 
 
@@ -193,6 +195,7 @@ class TeacherSearchSerializer(serializers.ModelSerializer):
     teaching_modes = serializers.StringRelatedField(many=True)
     service_areas = serializers.StringRelatedField(many=True)
     url = serializers.CharField(source="get_absolute_url", read_only=True)
+    public_profile = serializers.SerializerMethodField()
 
     class Meta:
         model = TeacherProfile
@@ -209,7 +212,26 @@ class TeacherSearchSerializer(serializers.ModelSerializer):
             "teaching_modes",
             "service_areas",
             "url",
+            "public_profile",
         )
+
+    def get_public_profile(self, profile):
+        from verification.models import ProfessionalCredential, VerificationStatus
+
+        return {
+            "verified_email": profile.user.email_verified,
+            "verified_identity": IdentityVerification.objects.filter(
+                user=profile.user, status=VerificationStatus.APPROVED
+            ).exists(),
+            "verified_phone": profile.user.phone_verified,
+            "verified_diploma": ProfessionalCredential.objects.filter(
+                user=profile.user,
+                credential_type=ProfessionalCredential.CredentialType.DIPLOMA,
+                status=VerificationStatus.APPROVED,
+            ).exists(),
+            "trust_score": getattr(profile.trust_score_snapshots.first(), "score", None),
+            "has_availability": profile.availabilities.exists(),
+        }
 
 
 class LearnerProfileSerializer(serializers.ModelSerializer):

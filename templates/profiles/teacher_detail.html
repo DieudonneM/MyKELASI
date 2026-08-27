@@ -5,6 +5,13 @@
     <h1>{{ teacher.user.get_full_name }}</h1>
     <p><strong>{{ teacher.headline }}</strong></p>
     <p>{{ teacher.bio }}</p>
+    <h2>Vérifications</h2>
+    <ul>
+        <li>Email : {% if verification.email %}vérifié{% else %}non vérifié{% endif %}</li>
+        <li>Téléphone : {% if verification.phone %}vérifié{% else %}non vérifié{% endif %}</li>
+        <li>Identité : {% if verification.identity %}vérifiée{% else %}non vérifiée{% endif %}</li>
+        <li>Diplôme : {% if verification.diploma %}vérifié{% else %}non vérifié{% endif %}</li>
+    </ul>
     {% if trust_score %}
         <h2>Trust Score : {{ trust_score.score }}/100</h2>
         <dl>

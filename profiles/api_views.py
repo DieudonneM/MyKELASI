@@ -4,6 +4,8 @@ from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from verification.models import IdentityVerification, VerificationStatus
+
 from .filters import TeacherSearchFilter
 from .models import LearnerProfile, Level, ServiceArea, Subject, TeacherProfile, TeachingMode
 from .serializers import (
@@ -45,6 +47,9 @@ class LearnerProfileCatalogAPIView(APIView):
                 "interests": serializer(Subject.objects.filter(is_active=True), many=True).data,
                 "service_areas": serializer(
                     ServiceArea.objects.filter(is_active=True), many=True
+                ).data,
+                "teaching_modes": serializer(
+                    TeachingMode.objects.filter(is_active=True), many=True
                 ).data,
             }
         )
@@ -113,4 +118,17 @@ class TeacherSearchAPIView(generics.ListAPIView):
             .select_related("user")
             .prefetch_related("subjects", "levels", "teaching_modes", "service_areas")
             .distinct()
+        )
+
+
+class TeacherPublicDetailAPIView(generics.RetrieveAPIView):
+    serializer_class = TeacherSearchSerializer
+    permission_classes = (AllowAny,)
+    lookup_field = "public_id"
+
+    def get_queryset(self):
+        return (
+            TeacherProfile.objects.filter(is_public=True, user__is_active=True)
+            .select_related("user")
+            .prefetch_related("subjects", "levels", "teaching_modes", "service_areas")
         )

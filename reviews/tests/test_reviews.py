@@ -200,3 +200,31 @@ def test_review_api_creation_and_public_listing(review_data):
     )
     assert list_response.status_code == 200
     assert list_response.data["count"] == 1
+
+
+@pytest.mark.django_db
+def test_teacher_review_and_reputation_endpoints(review_data):
+    learner, teacher, _, _, booking = review_data
+    booking = complete_booking(booking, learner, teacher)
+    client = APIClient()
+    client.force_authenticate(learner)
+    created = client.post(
+        reverse("reviews-api:create", args=(booking.public_id,)),
+        review_values(),
+        format="json",
+    )
+    assert created.status_code == 201
+    client.force_authenticate(teacher)
+    received = client.get("/api/v1/teacher/reviews/")
+    assert received.status_code == 200
+    assert received.data["count"] == 1
+    reputation = client.get("/api/v1/teacher/reputation/")
+    assert reputation.status_code == 200
+    assert "overall" in reputation.data
+    reply = client.post(
+        f"/api/v1/reviews/{created.data['public_id']}/reply/",
+        {"message": "Merci pour votre retour."},
+        format="json",
+    )
+    assert reply.status_code == 201
+    assert reply.data["message"] == "Merci pour votre retour."

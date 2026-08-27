@@ -5,6 +5,9 @@ from .api_views import (
     LearningRequestListCreateAPIView,
     MatchListAPIView,
     ProposalListCreateAPIView,
+    ProposalActionAPIView,
+    TeacherMatchedRequestListAPIView,
+    TeacherProposalListCreateAPIView,
 )
 
 app_name = "learning-api"
@@ -22,4 +25,8 @@ urlpatterns = [
         ProposalListCreateAPIView.as_view(),
         name="proposals",
     ),
+    path("proposals/<uuid:public_id>/<str:action>/", ProposalActionAPIView.as_view(), name="proposal-action"),
+    path("teacher/matched-requests/", TeacherMatchedRequestListAPIView.as_view(), name="teacher-matched-requests"),
+    path("teacher/proposals/<int:request_id>/", TeacherProposalListCreateAPIView.as_view(), name="teacher-proposal-create"),
+    path("teacher/proposals/", TeacherProposalListCreateAPIView.as_view(), name="teacher-proposals"),
 ]
