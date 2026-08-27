@@ -3,6 +3,7 @@ from django.urls import path
 from .api_views import (
     TeacherVerificationListCreateAPIView,
     TeacherVerificationUploadAPIView,
+    VerificationQueueAPIView,
     VerificationReviewAPIView,
 )
 
@@ -17,6 +18,7 @@ urlpatterns = [
         VerificationReviewAPIView.as_view(),
         name="verification-review",
     ),
+    path("verification/queue/", VerificationQueueAPIView.as_view(), name="verification-queue"),
     path(
         "teacher/verifications/upload/",
         TeacherVerificationUploadAPIView.as_view(),

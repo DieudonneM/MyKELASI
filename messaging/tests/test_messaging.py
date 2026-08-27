@@ -223,6 +223,26 @@ def test_moderation_queue_is_restricted_and_actions_are_audited(client, conversa
 
 
 @pytest.mark.django_db
+def test_moderation_can_warn_suspend_and_restore_report_target(conversation_data):
+    learner, teacher, _, moderator, _, conversation = conversation_data
+    report = create_report(
+        conversation=conversation,
+        reporter=learner,
+        reason=Report.Reason.HARASSMENT,
+    )
+
+    transition_report(report=report, moderator=moderator, action="warn", note="Rappel des règles.")
+    assert teacher.notifications.filter(kind="MODERATION_UPDATED").exists()
+    transition_report(report=report, moderator=moderator, action="suspend", note="Suspension temporaire.")
+    teacher.refresh_from_db()
+    assert teacher.status == teacher.Status.SUSPENDED
+    assert not teacher.teacher_profile.is_public
+    transition_report(report=report, moderator=moderator, action="restore", note="Compte rétabli.")
+    teacher.refresh_from_db()
+    assert teacher.status == teacher.Status.ACTIVE
+
+
+@pytest.mark.django_db
 def test_external_report_targets_enforce_target_permissions(client, conversation_data):
     learner, teacher, outsider, _, proposal, _ = conversation_data
     teacher.teacher_profile.is_public = True

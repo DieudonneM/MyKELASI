@@ -2,7 +2,15 @@ from rest_framework import serializers
 
 from verification.models import IdentityVerification, VerificationStatus
 
-from .models import Availability, LearnerProfile, Level, ServiceArea, Subject, TeacherProfile, TeachingMode
+from .models import (
+    Availability,
+    LearnerProfile,
+    Level,
+    ServiceArea,
+    Subject,
+    TeacherProfile,
+    TeachingMode,
+)
 
 
 class TeacherProfileReferenceSerializer(serializers.Serializer):
@@ -216,7 +224,7 @@ class TeacherSearchSerializer(serializers.ModelSerializer):
         )
 
     def get_public_profile(self, profile):
-        from verification.models import ProfessionalCredential, VerificationStatus
+        from verification.models import ProfessionalCredential
 
         return {
             "verified_email": profile.user.email_verified,

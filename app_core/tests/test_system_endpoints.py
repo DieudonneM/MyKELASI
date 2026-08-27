@@ -83,3 +83,30 @@ def test_privacy_page_is_public(client):
 
     assert response.status_code == 200
     assert "Politique de confidentialité" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_terms_page_is_public(client):
+    response = client.get(reverse("terms"))
+
+    assert response.status_code == 200
+    assert "Conditions d'utilisation" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_academic_integrity_page_is_public(client):
+    response = client.get(reverse("academic-integrity"))
+
+    assert response.status_code == 200
+    assert "Charte d'intégrité académique" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_footer_contains_legal_links(client):
+    response = client.get(reverse("home"))
+    content = response.content.decode()
+
+    assert reverse("privacy") in content
+    assert reverse("terms") in content
+    assert reverse("academic-integrity") in content
+    assert reverse("contact") in content

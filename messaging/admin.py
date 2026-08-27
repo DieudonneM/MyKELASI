@@ -25,7 +25,16 @@ class ReportActionInline(admin.TabularInline):
 
 @admin.register(Report)
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ("public_id", "reporter", "reason", "status", "created_at")
-    list_filter = ("status", "reason")
+    list_display = (
+        "public_id",
+        "reporter",
+        "reason",
+        "priority",
+        "assignee",
+        "status",
+        "created_at",
+    )
+    list_filter = ("status", "reason", "priority")
     readonly_fields = ("public_id", "created_at", "updated_at")
+    list_editable = ("priority", "assignee")
     inlines = (ReportActionInline,)

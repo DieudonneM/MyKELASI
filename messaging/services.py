@@ -5,6 +5,8 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+from accounts.models import User
+from accounts.services import record_audit
 from bookings.models import Booking
 from learning.models import Proposal
 from profiles.models import TeacherProfile
@@ -185,6 +187,10 @@ def transition_report(*, report, moderator, action, note=""):
         "review": (Report.Status.IN_REVIEW, ReportAction.Action.IN_REVIEW),
         "resolve": (Report.Status.RESOLVED, ReportAction.Action.RESOLVED),
         "dismiss": (Report.Status.DISMISSED, ReportAction.Action.DISMISSED),
+        "close": (Report.Status.RESOLVED, ReportAction.Action.RESOLVED),
+        "warn": (Report.Status.IN_REVIEW, ReportAction.Action.WARNED),
+        "suspend": (Report.Status.IN_REVIEW, ReportAction.Action.SUSPENDED),
+        "restore": (Report.Status.IN_REVIEW, ReportAction.Action.RESTORED),
     }
     try:
         status, audit_action = transitions[action]
@@ -194,13 +200,52 @@ def transition_report(*, report, moderator, action, note=""):
         raise ValidationError("Ce signalement est déjà fermé.")
     report.status = status
     report.save(update_fields=("status", "updated_at"))
+    target_user = _report_target_user(report)
+    if action == "suspend" and target_user:
+        target_user.status = User.Status.SUSPENDED
+        target_user.save(update_fields=("status", "updated_at"))
+        if hasattr(target_user, "teacher_profile"):
+            target_user.teacher_profile.is_public = False
+            target_user.teacher_profile.save(update_fields=("is_public", "updated_at"))
+    elif action == "restore" and target_user and target_user.status == User.Status.SUSPENDED:
+        target_user.status = User.Status.ACTIVE
+        target_user.save(update_fields=("status", "updated_at"))
+    if target_user and action in {"warn", "suspend", "restore"}:
+        from notifications.models import Notification
+
+        Notification.objects.create(
+            user=target_user,
+            kind=Notification.Kind.MODERATION_UPDATED,
+            title="Mise à jour de modération",
+            body=note.strip() or "Une action de modération a été appliquée à votre compte.",
+        )
     ReportAction.objects.create(
         report=report,
         actor=moderator,
         action=audit_action,
         note=note.strip(),
     )
+    record_audit(
+        actor=moderator,
+        action="moderation.report_transition",
+        target=report,
+        metadata={"action": action, "status": status},
+    )
     return report
+
+
+def _report_target_user(report):
+    if report.teacher_profile_id:
+        return report.teacher_profile.user
+    if report.proposal_id:
+        return report.proposal.teacher.user
+    if report.conversation_id:
+        return report.conversation.teacher
+    if report.booking_id:
+        return report.booking.teacher
+    if report.review_id:
+        return report.review.subject
+    return None
 
 
 @transaction.atomic

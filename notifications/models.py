@@ -2,8 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from bookings.models import Booking
-from learning.models import Proposal
-from learning.models import LearningRequest
+from learning.models import LearningRequest, Proposal
 
 
 class Notification(models.Model):
@@ -20,6 +19,8 @@ class Notification(models.Model):
         SESSION_COMPLETED = "SESSION_COMPLETED", "Session terminée"
         REVIEW_REQUESTED = "REVIEW_REQUESTED", "Avis à publier"
         REVIEW_CREATED = "REVIEW_CREATED", "Nouvel avis"
+        VERIFICATION_UPDATED = "VERIFICATION_UPDATED", "Vérification mise à jour"
+        MODERATION_UPDATED = "MODERATION_UPDATED", "Modération mise à jour"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

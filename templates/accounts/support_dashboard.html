@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Support | MyKELASI{% endblock %}
+{% block content %}<section><h1>Support</h1><h2>Comptes</h2><ul>{% for item in users %}<li>{{ item.email }} · {{ item.get_status_display }}</li>{% empty %}<li>Aucun compte.</li>{% endfor %}</ul><h2>Demandes</h2><ul>{% for item in requests %}<li>{{ item.learner.email }} · {{ item.get_status_display }}</li>{% empty %}<li>Aucune demande.</li>{% endfor %}</ul><h2>Réservations</h2><ul>{% for item in bookings %}<li>{{ item.learner.email }} / {{ item.teacher.email }} · {{ item.get_status_display }}</li>{% empty %}<li>Aucune réservation.</li>{% endfor %}</ul></section>{% endblock %}

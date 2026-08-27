@@ -154,6 +154,14 @@ class Report(models.Model):
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.OPEN)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    priority = models.PositiveSmallIntegerField(default=2)
+    assignee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_reports",
+    )
 
     class Meta:
         ordering = ("-created_at",)
@@ -211,6 +219,9 @@ class ReportAction(models.Model):
         IN_REVIEW = "IN_REVIEW", "Pris en charge"
         RESOLVED = "RESOLVED", "Résolu"
         DISMISSED = "DISMISSED", "Classé"
+        WARNED = "WARNED", "Averti"
+        SUSPENDED = "SUSPENDED", "Suspendu"
+        RESTORED = "RESTORED", "Restauré"
 
     report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name="actions")
     actor = models.ForeignKey(

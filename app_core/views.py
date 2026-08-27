@@ -2,8 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.urls import reverse_lazy
-from django.views.generic import FormView
-from django.views.generic import TemplateView
+from django.views.generic import FormView, TemplateView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -32,6 +31,14 @@ class AboutView(TemplateView):
 
 class PrivacyView(TemplateView):
     template_name = "privacy.html"
+
+
+class TermsView(TemplateView):
+    template_name = "terms.html"
+
+
+class AcademicIntegrityView(TemplateView):
+    template_name = "academic_integrity.html"
 
 
 class ContactView(FormView):

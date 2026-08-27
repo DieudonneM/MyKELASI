@@ -1,11 +1,11 @@
 from django.urls import path
 
 from .api_views import (
+    PublicTeacherReviewListAPIView,
     ReviewCreateAPIView,
     ReviewReplyCreateAPIView,
-    PublicTeacherReviewListAPIView,
-    TeacherReviewListAPIView,
     TeacherReputationAPIView,
+    TeacherReviewListAPIView,
 )
 
 app_name = "reviews-api"

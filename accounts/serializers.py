@@ -48,6 +48,9 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise AuthenticationFailed("Ce compte n'est pas disponible.")
         if not self.user.email_verified:
             raise AuthenticationFailed("Vérifiez votre adresse email avant de vous connecter.")
+        from .services import record_audit
+
+        record_audit(actor=self.user, action="auth.login", target=self.user)
         return data
 
 

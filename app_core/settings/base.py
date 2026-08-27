@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "messaging.apps.MessagingConfig",
     "reviews.apps.ReviewsConfig",
     "payments.apps.PaymentsConfig",
+    "analytics.apps.AnalyticsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

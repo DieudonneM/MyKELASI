@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Avg, Count
+from django.db.models import Avg
 
 from profiles.models import TeacherProfile
 

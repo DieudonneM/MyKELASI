@@ -1,14 +1,19 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import BasePermission
 
 from accounts.models import User
 
 from .models import LearningEvent, LearningRequest, Proposal
-from .serializers import LearningRequestSerializer, MatchResultSerializer, ProposalSerializer, TeacherMatchedRequestSerializer
+from .serializers import (
+    LearningRequestSerializer,
+    MatchResultSerializer,
+    ProposalSerializer,
+    TeacherMatchedRequestSerializer,
+)
 from .services import accept_proposal, generate_matches, reject_proposal
 
 

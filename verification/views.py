@@ -1,11 +1,84 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import FileResponse
-from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, View
+from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
+from django.views.generic import CreateView, ListView, View
+
+from accounts.services import record_audit
+from notifications.models import Notification
 
 from .forms import IdentityVerificationForm, ProfessionalCredentialForm
-from .models import IdentityVerification, ProfessionalCredential
+from .models import (
+    IdentityVerification,
+    ProfessionalCredential,
+    VerificationDecision,
+    VerificationStatus,
+)
+
+
+class VerificationRequiredMixin(LoginRequiredMixin):
+    def dispatch(self, request, *args, **kwargs):
+        if not (
+            request.user.is_superuser
+            or request.user.groups.filter(name="VERIFICATION").exists()
+        ):
+            raise PermissionDenied("Accès réservé à la vérification.")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class VerificationQueueView(VerificationRequiredMixin, ListView):
+    template_name = "verification/queue.html"
+    context_object_name = "documents"
+
+    def get_queryset(self):
+        return list(IdentityVerification.objects.filter(status=VerificationStatus.PENDING)) + list(
+            ProfessionalCredential.objects.filter(status=VerificationStatus.PENDING)
+        )
+
+
+class VerificationReviewView(VerificationRequiredMixin, View):
+    def post(self, request, kind, pk):
+        model = {"identity": IdentityVerification, "credential": ProfessionalCredential}.get(kind)
+        if model is None:
+            raise PermissionDenied
+        item = get_object_or_404(model, pk=pk)
+        new_status = request.POST.get("status", "")
+        valid_statuses = {
+            VerificationStatus.APPROVED,
+            VerificationStatus.REJECTED,
+            VerificationStatus.EXPIRED,
+        }
+        reason = request.POST.get("reason", "").strip()
+        if new_status not in valid_statuses or (
+            new_status == VerificationStatus.REJECTED and not reason
+        ):
+            messages.error(request, "Statut invalide ou motif de rejet manquant.")
+            return redirect("verification:queue")
+        previous_status = item.status
+        item.status = new_status
+        item.rejection_reason = reason
+        item.reviewed_by = request.user
+        item.reviewed_at = timezone.now()
+        item.save(update_fields=("status", "rejection_reason", "reviewed_by", "reviewed_at"))
+        VerificationDecision.objects.create(
+            document_type=kind,
+            document_id=item.pk,
+            reviewer=request.user,
+            from_status=previous_status,
+            to_status=new_status,
+            reason=reason,
+        )
+        record_audit(actor=request.user, action="verification.review", target=item)
+        Notification.objects.create(
+            user=item.user,
+            kind=Notification.Kind.VERIFICATION_UPDATED,
+            title="Vérification mise à jour",
+            body="Le statut de votre document de vérification a été mis à jour.",
+        )
+        messages.success(request, "Décision enregistrée.")
+        return redirect("verification:queue")
 
 
 class IdentityVerificationCreateView(LoginRequiredMixin, CreateView):
@@ -48,4 +121,6 @@ class PrivateDocumentView(LoginRequiredMixin, View):
         can_review = request.user.groups.filter(name="VERIFICATION").exists()
         if document.user_id != request.user.pk and not can_review and not request.user.is_superuser:
             raise PermissionDenied
+        if document.user_id != request.user.pk:
+            record_audit(actor=request.user, action="verification.document_view", target=document)
         return FileResponse(document.document.open("rb"), as_attachment=True)

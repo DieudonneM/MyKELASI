@@ -5,9 +5,9 @@ from .views import (
     LearningRequestCreateView,
     LearningRequestDetailView,
     LearningRequestListView,
+    ProposalActionView,
     ProposalCreateView,
 )
-from .views import ProposalActionView
 
 app_name = "learning"
 

@@ -5,17 +5,17 @@ import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from bookings.models import Booking, Session
 from learning.models import LearningEvent, LearningRequest, MatchResult, Proposal
 from learning.services import _score_teacher, generate_matches
+from notifications.models import Notification
 from profiles.models import Availability, Level, ServiceArea, Subject, TeachingMode
 from reviews.models import Review
-from notifications.models import Notification
 
 
 def create_teacher(email, name, subject, level, mode, area, rate):

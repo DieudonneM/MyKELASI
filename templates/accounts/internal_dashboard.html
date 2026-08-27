@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Dashboard opérationnel | MyKELASI{% endblock %}
+{% block content %}
+<section class="app-heading dashboard-heading">
+    <div>
+        <p class="eyebrow">Espace interne</p>
+        <h1>Dashboard opérationnel</h1>
+        <p>Vue d'ensemble de l'activité MyKELASI.</p>
+    </div>
+    <span class="account-badge"><i data-lucide="shield" aria-hidden="true"></i> {{ user.groups.first.name|default:"Admin" }}</span>
+</section>
+
+<section class="dashboard-stats" aria-label="Indicateurs clés">
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.total_users }}</span>
+        <span class="stat-label">Utilisateurs</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.pending_verifications }}</span>
+        <span class="stat-label">Vérifications en attente</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.open_reports }}</span>
+        <span class="stat-label">Signalements ouverts</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.pending_payments }}</span>
+        <span class="stat-label">Paiements à traiter</span>
+    </div>
+</section>
+
+<section class="dashboard-grid" aria-label="Accès rapides">
+    <a class="dashboard-primary" href="{% url 'analytics:dashboard' %}">
+        <span class="dashboard-icon"><i data-lucide="bar-chart-3" aria-hidden="true"></i></span>
+        <div><p>Analytics</p><h2>KPI et métriques</h2></div>
+        <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'verification:queue' %}">
+        <span class="dashboard-icon"><i data-lucide="badge-check" aria-hidden="true"></i></span>
+        <div><p>Vérification</p><h2>File des documents</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'messaging:moderation-list' %}">
+        <span class="dashboard-icon"><i data-lucide="flag" aria-hidden="true"></i></span>
+        <div><p>Modération</p><h2>Signalements</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'reviews:moderation-list' %}">
+        <span class="dashboard-icon"><i data-lucide="star" aria-hidden="true"></i></span>
+        <div><p>Avis</p><h2>Modération avis</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'payments:finance-list' %}">
+        <span class="dashboard-icon"><i data-lucide="wallet" aria-hidden="true"></i></span>
+        <div><p>Finance</p><h2>Paiements et versements</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'accounts:support-dashboard' %}">
+        <span class="dashboard-icon"><i data-lucide="life-buoy" aria-hidden="true"></i></span>
+        <div><p>Support</p><h2>Comptes et demandes</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+</section>
+
+<section class="dashboard-cta">
+    <div><p class="eyebrow">Administration</p><h2>Gérer les référentiels</h2></div>
+    <a class="button button-dark" href="{% url 'admin:index' %}">Accéder à l'admin <i data-lucide="arrow-right" aria-hidden="true"></i></a>
+</section>
+{% endblock %}

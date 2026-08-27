@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 
+from accounts.models import AuditLog
 from bookings.services import create_booking, transition_booking
 from learning.models import LearningRequest, Proposal
 from payments.models import FinanceAction, LedgerEntry, Payment
@@ -277,6 +278,20 @@ def test_payout_and_reconciliation_are_audited(confirmed_booking):
         for entry in payment.ledger_entries.filter(entry_type=LedgerEntry.EntryType.CREDIT)
     )
     assert debits == credits == Decimal("38000.00")
+
+
+@pytest.mark.django_db
+def test_finance_export_is_restricted_and_audited(confirmed_booking, client):
+    learner, _, booking = confirmed_booking
+    create_payment(booking=booking, payer=learner, idempotency_key="export-1")
+    actor = finance_user()
+    client.force_login(actor)
+
+    response = client.get(reverse("payments:finance-export"))
+
+    assert response.status_code == 200
+    assert "reference,status,amount,currency,created_at" in response.content.decode()
+    assert AuditLog.objects.filter(actor=actor, action="finance.export").exists()
 
 
 @pytest.mark.django_db

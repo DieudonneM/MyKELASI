@@ -5,7 +5,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from verification.models import IdentityVerification
+from accounts.models import AuditLog
+from notifications.models import Notification
+from verification.models import IdentityVerification, VerificationDecision, VerificationStatus
 from verification.validators import validate_document
 
 
@@ -74,6 +76,42 @@ def test_document_validator_rejects_unsupported_extension():
 
     with pytest.raises(ValidationError):
         validate_document(file)
+
+
+@pytest.mark.django_db
+def test_verification_queue_review_is_notifiable_and_immutable(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    user_model = get_user_model()
+    owner = user_model.objects.create_user(email="queue-owner@example.com", account_type="TEACHER")
+    reviewer = user_model.objects.create_user(email="queue-reviewer@example.com", is_staff=True)
+    reviewer.groups.add(reviewer.groups.model.objects.get(name="VERIFICATION"))
+    document = IdentityVerification.objects.create(
+        user=owner,
+        document_type="PASSPORT",
+        document=SimpleUploadedFile("passport.pdf", b"%PDF-1.4 test", content_type="application/pdf"),
+    )
+    client = APIClient()
+    client.force_authenticate(reviewer)
+
+    queue = client.get(reverse("verification-queue"))
+    assert queue.status_code == 200
+    assert queue.data["results"][0]["id"] == document.pk
+    response = client.post(
+        reverse("verification-review", args=("identity", document.pk)),
+        {"status": VerificationStatus.REJECTED, "rejection_reason": "Document illisible."},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert VerificationDecision.objects.filter(
+        document_id=document.pk, to_status=VerificationStatus.REJECTED
+    ).exists()
+    assert Notification.objects.filter(
+        user=owner, kind=Notification.Kind.VERIFICATION_UPDATED
+    ).exists()
+    audit = AuditLog.objects.get(action="verification.review")
+    with pytest.raises(ValueError, match="immuable"):
+        audit.save()
 
 
 @pytest.mark.django_db

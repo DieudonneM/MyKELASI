@@ -6,6 +6,7 @@ from .api_views import (
     LogoutAPIView,
     RefreshAPIView,
     RegisterAPIView,
+    SupportDashboardAPIView,
     VerifyEmailAPIView,
 )
 
@@ -18,4 +19,5 @@ urlpatterns = [
     path("logout/", LogoutAPIView.as_view(), name="logout"),
     path("verify-email/", VerifyEmailAPIView.as_view(), name="verify-email"),
     path("me/", CurrentUserAPIView.as_view(), name="me"),
+    path("internal/support/", SupportDashboardAPIView.as_view(), name="support-dashboard"),
 ]

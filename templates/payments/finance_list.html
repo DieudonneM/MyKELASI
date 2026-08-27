@@ -3,6 +3,7 @@
 {% block content %}
 <section>
     <h1>Paiements à traiter</h1>
+    <p><a href="{% url 'payments:finance-export' %}">Exporter les paiements CSV</a></p>
     <div class="result-list">
         {% for payment in payments %}
             <article>
@@ -13,5 +14,13 @@
             <p>Aucun paiement.</p>
         {% endfor %}
     </div>
+    <h2>Webhooks</h2>
+    <ul>{% for item in webhooks %}<li>{{ item.event_id }} · {{ item.created_at }}</li>{% empty %}<li>Aucun webhook.</li>{% endfor %}</ul>
+    <h2>Remboursements</h2>
+    <ul>{% for item in refunds %}<li>{{ item.reference }} · {{ item.amount }} {{ item.currency }} · {{ item.get_status_display }}</li>{% empty %}<li>Aucun remboursement.</li>{% endfor %}</ul>
+    <h2>Versements</h2>
+    <ul>{% for item in payouts %}<li>{{ item.reference }} · {{ item.amount }} {{ item.currency }} · {{ item.get_status_display }}</li>{% empty %}<li>Aucun versement.</li>{% endfor %}</ul>
+    <h2>Ledger</h2>
+    <ul>{% for item in ledger_entries %}<li>{{ item.transaction_reference }} · {{ item.entry_type }} · {{ item.amount }} {{ item.currency }}</li>{% empty %}<li>Aucune écriture.</li>{% endfor %}</ul>
 </section>
 {% endblock %}

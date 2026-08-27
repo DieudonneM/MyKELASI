@@ -1,17 +1,20 @@
+import csv
 import uuid
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import DetailView, ListView
 
+from accounts.services import record_audit
 from bookings.models import Booking
 
 from .forms import FinanceActionForm, PaymentCreateForm
-from .models import Payment
+from .models import LedgerEntry, Payment, PaymentWebhook, Payout, Refund
 from .services import create_payment, create_payout, reconcile_payment, refund_payment
 
 
@@ -86,6 +89,34 @@ class FinancePaymentListView(FinanceRequiredMixin, ListView):
 
     def get_queryset(self):
         return Payment.objects.select_related("payer", "booking__teacher")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["webhooks"] = PaymentWebhook.objects.select_related("payment")
+        context["refunds"] = Refund.objects.select_related("payment")
+        context["payouts"] = Payout.objects.select_related("payment", "teacher")
+        context["ledger_entries"] = LedgerEntry.objects.select_related("payment")
+        return context
+
+
+class FinanceExportView(FinanceRequiredMixin, View):
+    def get(self, request):
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = 'attachment; filename="finance-export.csv"'
+        writer = csv.writer(response)
+        writer.writerow(("reference", "status", "amount", "currency", "created_at"))
+        for payment in Payment.objects.order_by("created_at"):
+            writer.writerow(
+                (
+                    payment.reference,
+                    payment.status,
+                    payment.amount,
+                    payment.currency,
+                    payment.created_at.isoformat(),
+                )
+            )
+        record_audit(actor=request.user, action="finance.export", target=request.user)
+        return response
 
 
 class FinancePaymentDetailView(FinanceRequiredMixin, View):

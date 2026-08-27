@@ -1,24 +1,32 @@
 from pathlib import Path
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework import generics, status
-from django.core.files import File
 from django.core.files.base import ContentFile
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files.storage import default_storage
-from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import BasePermission
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework.response import Response
+from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.permissions import BasePermission
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import IdentityVerification, ProfessionalCredential, VerificationUpload
+from accounts.services import record_audit
+from notifications.models import Notification
+
+from .models import (
+    IdentityVerification,
+    ProfessionalCredential,
+    VerificationDecision,
+    VerificationStatus,
+    VerificationUpload,
+)
 from .serializers_api import (
     VerificationDocumentModelSerializer,
-    VerificationUploadSerializer,
     VerificationReviewSerializer,
+    VerificationUploadSerializer,
 )
 
 
@@ -85,12 +93,63 @@ class VerificationReviewAPIView(APIView):
         serializer = VerificationReviewSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         item = get_object_or_404(model, pk=pk)
-        item.status = serializer.validated_data["status"]
-        item.rejection_reason = serializer.validated_data.get("rejection_reason", "")
+        new_status = serializer.validated_data["status"]
+        reason = serializer.validated_data.get("rejection_reason", "").strip()
+        previous_status = item.status
+        item.status = new_status
+        item.rejection_reason = reason
         item.reviewed_by = request.user
         item.reviewed_at = timezone.now()
         item.save(update_fields=("status", "rejection_reason", "reviewed_by", "reviewed_at"))
+        VerificationDecision.objects.create(
+            document_type=kind,
+            document_id=item.pk,
+            reviewer=request.user,
+            from_status=previous_status,
+            to_status=new_status,
+            reason=reason,
+        )
+        record_audit(
+            actor=request.user,
+            action="verification.review",
+            target=item,
+            metadata={"from_status": previous_status, "to_status": new_status},
+        )
+        Notification.objects.create(
+            user=item.user,
+            kind=Notification.Kind.VERIFICATION_UPDATED,
+            title="Vérification mise à jour",
+            body=(
+                "Votre document a été approuvé."
+                if new_status == VerificationStatus.APPROVED
+                else "Votre document a été refusé. Consultez le motif et déposez une nouvelle pièce."
+                if new_status == VerificationStatus.REJECTED
+                else "Le statut de votre document de vérification a changé."
+            ),
+        )
         return Response(VerificationDocumentModelSerializer(item).data)
+
+
+class VerificationQueueAPIView(APIView):
+    def get(self, request):
+        if not (
+            request.user.is_authenticated
+            and (
+                request.user.is_superuser
+                or request.user.groups.filter(name="VERIFICATION").exists()
+            )
+        ):
+            return Response({"detail": "Accès refusé."}, status=status.HTTP_403_FORBIDDEN)
+        identity = IdentityVerification.objects.filter(status=VerificationStatus.PENDING)
+        credentials = ProfessionalCredential.objects.filter(status=VerificationStatus.PENDING)
+        results = [
+            {"kind": "identity", "id": item.pk, "user_id": item.user_id, "status": item.status}
+            for item in identity
+        ] + [
+            {"kind": "credential", "id": item.pk, "user_id": item.user_id, "status": item.status}
+            for item in credentials
+        ]
+        return Response({"count": len(results), "results": results})
 
 
 class TeacherVerificationUploadAPIView(APIView):

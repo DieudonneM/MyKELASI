@@ -460,11 +460,11 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 9.2 - Vérification
 
-- [ ] File des documents `pending`.
-- [ ] Consultation sécurisée et auditée des documents.
+- [x] File des documents `pending`.
+- [x] Consultation sécurisée et auditée des documents.
 - [ ] Actions approuver, rejeter, expirer avec motif.
-- [ ] Notifications au Formateur.
-- [ ] Historique non modifiable des décisions.
+- [x] Notifications au Formateur.
+- [x] Historique non modifiable des décisions.
 - [ ] Tester absence d'accès public aux fichiers.
 
 ## Étape 9.3 - Modération et support
@@ -473,17 +473,17 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 - [ ] Attribution, statut, priorité et historique du signalement.
 - [ ] Actions masquer, restaurer, avertir, suspendre et clôturer.
 - [ ] Accès temporaire et audité aux conversations signalées.
-- [ ] Écran support des comptes, demandes et réservations sans données finance inutiles.
+- [x] Écran support des comptes, demandes et réservations sans données finance inutiles.
 - [ ] Gestion des disputes et communication aux parties.
 
 ## Étape 9.4 - Finance
 
-- [ ] Liste paiements, webhooks, remboursements, ledger et versements.
+- [x] Liste paiements, webhooks, remboursements, ledger et versements.
 - [ ] Rapprochement manuel avec référence externe.
 - [ ] Traitement des paiements bloqués et litiges.
 - [ ] Export contrôlé des données financières.
 - [ ] Journalisation de toute modification financière.
-- [ ] Vérifier qu'aucune écriture ledger existante n'est modifiable silencieusement.
+- [x] Vérifier qu'aucune écriture ledger existante n'est modifiable silencieusement.
 
 ## Étape 9.5 - Référentiels et configuration
 
@@ -495,7 +495,7 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 9.6 - Analytics produit
 
-- [ ] Modèle événements avec données minimales et pseudonymisables.
+- [x] Modèle événements avec données minimales et pseudonymisables.
 - [ ] KPI demandes, matches, propositions, bookings et sessions terminées.
 - [ ] KPI paiements, GMV, commission, annulations, no-show et litiges.
 - [ ] Conversion demande → réservation et réservation → session terminée.
@@ -509,44 +509,44 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 10.1 - Pages publiques
 
-- [ ] Accueil et présentation claire du service.
-- [ ] Inscription, connexion, vérification email et récupération mot de passe.
-- [ ] Recherche Formateurs.
-- [ ] Détail public Formateur.
-- [ ] Conditions, confidentialité, règles d'intégrité académique et contact.
+- [x] Accueil et présentation claire du service.
+- [x] Inscription, connexion, vérification email et récupération mot de passe.
+- [x] Recherche Formateurs.
+- [x] Détail public Formateur.
+- [x] Conditions, confidentialité, règles d'intégrité académique et contact.
 
 ## Étape 10.2 - Espace Apprenant
 
-- [ ] Tableau de bord Apprenant.
-- [ ] Profil et paramètres.
-- [ ] Nouvelle demande courte et détaillée.
-- [ ] Mes demandes et détail.
-- [ ] Matches et comparaison.
-- [ ] Propositions reçues et choix.
-- [ ] Réservations et détail.
-- [ ] Paiement, historique et reçus.
-- [ ] Sessions, messagerie et notifications.
-- [ ] Avis, litiges et réachat.
+- [x] Tableau de bord Apprenant.
+- [x] Profil et paramètres.
+- [x] Nouvelle demande courte et détaillée.
+- [x] Mes demandes et détail.
+- [x] Matches et comparaison.
+- [x] Propositions reçues et choix.
+- [x] Réservations et détail.
+- [x] Paiement, historique et reçus.
+- [x] Sessions, messagerie et notifications.
+- [x] Avis, litiges et réachat.
 
 ## Étape 10.3 - Espace Formateur
 
-- [ ] Tableau de bord.
-- [ ] Profil, édition et publication.
-- [ ] Disponibilités et tarification.
-- [ ] Vérification et certifications.
-- [ ] Demandes matchées et propositions.
-- [ ] Réservations et sessions.
-- [ ] Messagerie, notifications, avis, revenus et paramètres.
+- [x] Tableau de bord.
+- [x] Profil, édition et publication.
+- [x] Disponibilités et tarification.
+- [x] Vérification et certifications.
+- [x] Demandes matchées et propositions.
+- [x] Réservations et sessions.
+- [x] Messagerie, notifications, avis, revenus et paramètres.
 
 ## Étape 10.4 - Espace interne
 
-- [ ] Dashboard opérationnel.
-- [ ] Vérification.
-- [ ] Modération et signalements.
-- [ ] Support.
-- [ ] Finance.
-- [ ] Référentiels.
-- [ ] Analytics et exports contrôlés.
+- [x] Dashboard opérationnel.
+- [x] Vérification.
+- [x] Modération et signalements.
+- [x] Support.
+- [x] Finance.
+- [x] Référentiels.
+- [x] Analytics et exports contrôlés.
 
 ---
 

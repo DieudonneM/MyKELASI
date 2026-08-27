@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Conditions d'utilisation | MyKELASI{% endblock %}
+{% block body_class %}legal-page{% endblock %}
+{% block main_class %}legal-shell{% endblock %}
+{% block content %}
+<header class="legal-hero">
+    <p class="eyebrow">Cadre d'utilisation</p>
+    <h1>Conditions d'utilisation</h1>
+    <div class="legal-intro">
+        <p>Ces conditions définissent les règles d'accès et d'utilisation de la plateforme MyKELASI.</p>
+        <p class="legal-date">Dernière mise à jour : 26 août 2026</p>
+    </div>
+</header>
+
+<div class="legal-layout">
+    <aside class="legal-nav" aria-label="Sommaire des conditions">
+        <p>Sommaire</p>
+        <nav>
+            <a href="#objet">Objet</a>
+            <a href="#inscription">Inscription et compte</a>
+            <a href="#services">Services proposés</a>
+            <a href="#obligations">Obligations des utilisateurs</a>
+            <a href="#paiement">Paiement et tarifs</a>
+            <a href="#annulation">Annulation et remboursement</a>
+            <a href="#responsabilite">Responsabilité</a>
+            <a href="#suspension">Suspension et résiliation</a>
+            <a href="#modification">Modification des conditions</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </aside>
+
+    <article class="legal-content">
+        <section id="objet">
+            <span>01</span>
+            <h2>Objet</h2>
+            <p>MyKELASI est une plateforme de mise en relation entre apprenants et enseignants (formateurs) à Kinshasa et en ligne. Elle permet la recherche de profils, la création de demandes d'apprentissage, la réservation de sessions et le paiement sécurisé.</p>
+            <p>L'utilisation de la plateforme implique l'acceptation pleine et entière des présentes conditions.</p>
+        </section>
+
+        <section id="inscription">
+            <span>02</span>
+            <h2>Inscription et compte</h2>
+            <p>Pour utiliser les services transactionnels, vous devez créer un compte en fournissant des informations exactes et à jour. Deux types de comptes publics existent : <strong>Apprenant</strong> et <strong>Formateur</strong>.</p>
+            <p>Vous êtes responsable de la confidentialité de vos identifiants et de toutes les actions effectuées depuis votre compte. La vérification de votre adresse email est obligatoire avant toute transaction.</p>
+            <p>Un même utilisateur ne peut détenir qu'un seul compte par rôle public. Les comptes internes (support, modération, finance) sont distincts et réservés au personnel habilité.</p>
+        </section>
+
+        <section id="services">
+            <span>03</span>
+            <h2>Services proposés</h2>
+            <p>MyKELASI offre les fonctionnalités suivantes :</p>
+            <ul>
+                <li>Recherche et comparaison de profils d'enseignants vérifiés.</li>
+                <li>Création et gestion de demandes d'apprentissage personnalisées.</li>
+                <li>Système de mise en relation (matching) basé sur des critères pédagogiques et logistiques.</li>
+                <li>Réservation de sessions avec confirmation mutuelle.</li>
+                <li>Paiement sécurisé par Mobile Money (CDF) avec commission transparente.</li>
+                <li>Messagerie intégrée entre participants.</li>
+                <li>Système d'avis et de notation post-session.</li>
+            </ul>
+        </section>
+
+        <section id="obligations">
+            <span>04</span>
+            <h2>Obligations des utilisateurs</h2>
+            <p>En utilisant MyKELASI, vous vous engagez à :</p>
+            <ul>
+                <li>Fournir des informations exactes, complètes et régulièrement mises à jour.</li>
+                <li>Respecter les autres utilisateurs et le personnel de la plateforme.</li>
+                <li>Ne pas utiliser la plateforme à des fins illégales, frauduleuses ou contraires à l'éthique académique.</li>
+                <li>Ne pas contourner le système de paiement intégré pour les services réservés via MyKELASI.</li>
+                <li>Respecter les horaires et engagements pris lors des réservations.</li>
+                <li>Signaler tout comportement inapproprié ou toute violation des présentes conditions.</li>
+            </ul>
+            <p>Les enseignants s'engagent en outre à ne pas proposer de services de rédaction frauduleuse de travaux académiques, conformément à notre <a href="{% url 'academic-integrity' %}">charte d'intégrité</a>.</p>
+        </section>
+
+        <section id="paiement">
+            <span>05</span>
+            <h2>Paiement et tarifs</h2>
+            <p>Les tarifs des sessions sont fixés par les enseignants et affichés en francs congolais (CDF). MyKELASI prélève une commission de <strong>10 %</strong> sur chaque transaction, calculée et affichée avant confirmation.</p>
+            <p>Le paiement s'effectue exclusivement via les prestataires Mobile Money intégrés (M-Pesa, Orange Money, Airtel Money). Aucun paiement en espèces ou par canal externe n'est couvert par nos garanties.</p>
+            <p>Les montants sont conservés sur un compte séquestre jusqu'à la confirmation de la réalisation de la session.</p>
+        </section>
+
+        <section id="annulation">
+            <span>06</span>
+            <h2>Annulation et remboursement</h2>
+            <p><strong>Annulation gratuite :</strong> L'apprenant peut annuler sans frais toute réservation confirmée plus de 24 heures avant le début de la session.</p>
+            <p><strong>Annulation hors délai :</strong> En cas d'annulation tardive ou d'absence injustifiée (no-show), le montant peut être retenu et soumis à arbitrage par notre équipe support.</p>
+            <p><strong>Litige :</strong> En cas de désaccord sur le déroulement d'une session, les parties peuvent ouvrir un litige. Le montant reste gelé jusqu'à résolution par notre équipe.</p>
+        </section>
+
+        <section id="responsabilite">
+            <span>07</span>
+            <h2>Responsabilité</h2>
+            <p>MyKELASI agit comme intermédiaire technique et de paiement. Nous ne sommes pas partie au contrat pédagogique entre l'apprenant et l'enseignant.</p>
+            <p>Nous nous engageons à vérifier les profils et à sécuriser les transactions, mais nous ne garantissons pas les résultats d'apprentissage ni la disponibilité permanente des utilisateurs.</p>
+            <p>Notre responsabilité est limitée aux montants effectivement perçus à titre de commission sur les transactions concernées.</p>
+        </section>
+
+        <section id="suspension">
+            <span>08</span>
+            <h2>Suspension et résiliation</h2>
+            <p>Nous nous réservons le droit de suspendre ou désactiver tout compte en cas de :</p>
+            <ul>
+                <li>Violation des présentes conditions ou de la charte d'intégrité académique.</li>
+                <li>Comportement frauduleux, abusif ou dangereux pour autrui.</li>
+                <li>Faux documents ou fausses déclarations lors de la vérification.</li>
+                <li>Non-respect répété des engagements de réservation.</li>
+            </ul>
+            <p>Vous pouvez désactiver votre compte à tout moment depuis les paramètres. Les données seront conservées selon les durées légales puis supprimées ou anonymisées.</p>
+        </section>
+
+        <section id="modification">
+            <span>09</span>
+            <h2>Modification des conditions</h2>
+            <p>Ces conditions peuvent être modifiées pour refléter l'évolution du service ou des obligations légales. Les utilisateurs seront informés des changements significatifs par email ou notification dans l'application.</p>
+            <p>La version applicable est celle en vigueur au moment de l'utilisation du service.</p>
+        </section>
+
+        <section id="contact">
+            <span>10</span>
+            <h2>Contact</h2>
+            <p>Pour toute question relative à ces conditions, contactez-nous à <a href="mailto:legal@mykelasi.cd">legal@mykelasi.cd</a> ou via notre <a href="{% url 'contact' %}">formulaire de contact</a>.</p>
+            <a class="button button-dark" href="{% url 'contact' %}">Nous contacter <i data-lucide="arrow-right" aria-hidden="true"></i></a>
+        </section>
+    </article>
+</div>
+{% endblock %}

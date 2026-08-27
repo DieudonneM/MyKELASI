@@ -4,8 +4,6 @@ from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from verification.models import IdentityVerification, VerificationStatus
-
 from .filters import TeacherSearchFilter
 from .models import LearnerProfile, Level, ServiceArea, Subject, TeacherProfile, TeachingMode
 from .serializers import (

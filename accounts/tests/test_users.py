@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db import IntegrityError
 from django.urls import reverse
+from rest_framework.test import APIClient
 
 from accounts.roles import INTERNAL_ROLE_NAMES
 
@@ -84,3 +85,81 @@ def test_superuser_can_open_user_admin(client):
     response = client.get(reverse("admin:accounts_user_add"))
 
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_support_dashboard_excludes_internal_and_financial_data():
+    user_model = get_user_model()
+    support = user_model.objects.create_user(email="support@example.com", password="test-password")
+    support.groups.add(Group.objects.get(name="SUPPORT"))
+    user_model.objects.create_user(email="public@example.com", account_type="LEARNER")
+    user_model.objects.create_user(email="internal@example.com", is_internal=True)
+    client = APIClient()
+    client.force_authenticate(support)
+
+    response = client.get(reverse("accounts-api:support-dashboard"))
+
+    assert response.status_code == 200
+    assert {item["email"] for item in response.data["users"]} == {"public@example.com"}
+    assert "amount" not in str(response.data)
+
+
+@pytest.mark.django_db
+def test_internal_dashboard_requires_internal_role(client):
+    user = get_user_model().objects.create_user(
+        email="public@example.com",
+        password="test-password",
+        account_type="LEARNER",
+    )
+    client.force_login(user)
+
+    response = client.get(reverse("accounts:internal-dashboard"))
+
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_internal_dashboard_accessible_to_support(client):
+    support = get_user_model().objects.create_user(
+        email="support@example.com",
+        password="test-password",
+        is_internal=True,
+    )
+    support.groups.add(Group.objects.get(name="SUPPORT"))
+    client.force_login(support)
+
+    response = client.get(reverse("accounts:internal-dashboard"))
+
+    assert response.status_code == 200
+    assert "Dashboard opérationnel" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_referentials_dashboard_requires_admin(client):
+    support = get_user_model().objects.create_user(
+        email="support@example.com",
+        password="test-password",
+        is_internal=True,
+    )
+    support.groups.add(Group.objects.get(name="SUPPORT"))
+    client.force_login(support)
+
+    response = client.get(reverse("accounts:referentials-dashboard"))
+
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_referentials_dashboard_accessible_to_admin(client):
+    admin = get_user_model().objects.create_user(
+        email="admin@example.com",
+        password="test-password",
+        is_internal=True,
+    )
+    admin.groups.add(Group.objects.get(name="ADMIN"))
+    client.force_login(admin)
+
+    response = client.get(reverse("accounts:referentials-dashboard"))
+
+    assert response.status_code == 200
+    assert "Référentiels" in response.content.decode()

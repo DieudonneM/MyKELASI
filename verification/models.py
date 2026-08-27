@@ -108,3 +108,25 @@ class ProfessionalCredential(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+
+
+class VerificationDecision(models.Model):
+    document_type = models.CharField(max_length=20)
+    document_id = models.PositiveBigIntegerField()
+    reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="verification_decisions",
+    )
+    from_status = models.CharField(max_length=10, blank=True)
+    to_status = models.CharField(max_length=10)
+    reason = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at", "pk")
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValueError("Une décision de vérification est immuable.")
+        return super().save(*args, **kwargs)

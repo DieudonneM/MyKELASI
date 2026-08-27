@@ -75,3 +75,32 @@ def test_invalid_verification_link_is_rejected(client):
 
     assert response.status_code == 302
     assert response.url == reverse("accounts:verification-invalid")
+
+
+@pytest.mark.django_db
+def test_dashboard_displays_learner_statistics(client):
+    """Vérifie que le dashboard affiche les statistiques pour un apprenant."""
+    # Créer un apprenant avec email vérifié
+    user = get_user_model().objects.create_user(
+        email="learner@example.com",
+        password="Strong-password-2026",
+        account_type="LEARNER",
+        email_verified=True,
+    )
+
+    # Se connecter
+    client.force_login(user)
+
+    # Vérifier le dashboard
+    response = client.get(reverse("accounts:dashboard"))
+    assert response.status_code == 200
+    assert "Bonjour" in response.content.decode()
+    assert "Tableau de bord" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_dashboard_requires_login(client):
+    """Vérifie que le dashboard redirige les utilisateurs non connectés."""
+    response = client.get(reverse("accounts:dashboard"))
+    assert response.status_code == 302
+    assert reverse("accounts:login") in response.url

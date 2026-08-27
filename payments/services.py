@@ -7,6 +7,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
+from accounts.services import record_audit
 from bookings.models import Booking
 from learning.models import LearningEvent
 
@@ -255,6 +256,7 @@ def refund_payment(*, payment, actor, reason):
         action=FinanceAction.Action.REFUND_COMPLETED,
         note=reason,
     )
+    record_audit(actor=actor, action="finance.refund", target=payment)
     return refund, True
 
 
@@ -304,6 +306,7 @@ def create_payout(*, payment, actor, note=""):
         action=FinanceAction.Action.PAYOUT_COMPLETED,
         note=note.strip(),
     )
+    record_audit(actor=actor, action="finance.payout", target=payment)
     return payout, True
 
 
@@ -332,4 +335,5 @@ def reconcile_payment(*, payment, actor, matched, note=""):
         action=FinanceAction.Action.RECONCILED,
         note=note.strip(),
     )
+    record_audit(actor=actor, action="finance.reconcile", target=payment)
     return payment

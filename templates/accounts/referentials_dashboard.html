@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Référentiels | MyKELASI{% endblock %}
+{% block content %}
+<section class="app-heading dashboard-heading">
+    <div>
+        <p class="eyebrow">Configuration</p>
+        <h1>Référentiels</h1>
+        <p>Gérez les matières, niveaux, modes d'enseignement et zones.</p>
+    </div>
+</section>
+
+<section class="dashboard-grid" aria-label="Référentiels disponibles">
+    <a href="{% url 'admin:profiles_subject_changelist' %}">
+        <span class="dashboard-icon"><i data-lucide="book-open" aria-hidden="true"></i></span>
+        <div><p>Matières</p><h2>{{ subjects_count }} matière{{ subjects_count|pluralize }}</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'admin:profiles_level_changelist' %}">
+        <span class="dashboard-icon"><i data-lucide="graduation-cap" aria-hidden="true"></i></span>
+        <div><p>Niveaux</p><h2>{{ levels_count }} niveau{{ levels_count|pluralize }}</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'admin:profiles_teachingmode_changelist' %}">
+        <span class="dashboard-icon"><i data-lucide="monitor-smartphone" aria-hidden="true"></i></span>
+        <div><p>Modes</p><h2>{{ modes_count }} mode{{ modes_count|pluralize }}</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+    <a href="{% url 'admin:profiles_servicearea_changelist' %}">
+        <span class="dashboard-icon"><i data-lucide="map-pin" aria-hidden="true"></i></span>
+        <div><p>Zones</p><h2>{{ areas_count }} zone{{ areas_count|pluralize }}</h2></div>
+        <i data-lucide="arrow-right" aria-hidden="true"></i>
+    </a>
+</section>
+
+<section class="dashboard-cta">
+    <div><p class="eyebrow">Ajout rapide</p><h2>Nouveau référentiel</h2></div>
+    <div class="actions">
+        <a class="button button-dark" href="{% url 'admin:profiles_subject_add' %}">+ Matière</a>
+        <a class="button button-dark" href="{% url 'admin:profiles_level_add' %}">+ Niveau</a>
+        <a class="button button-dark" href="{% url 'admin:profiles_teachingmode_add' %}">+ Mode</a>
+        <a class="button button-dark" href="{% url 'admin:profiles_servicearea_add' %}">+ Zone</a>
+    </div>
+</section>
+{% endblock %}

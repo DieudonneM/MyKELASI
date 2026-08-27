@@ -18,7 +18,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from app_core.views import AboutView, ContactView, HomeView, PrivacyView, api_root, api_schema, health, ready
+from app_core.views import (
+    AboutView,
+    AcademicIntegrityView,
+    ContactView,
+    HomeView,
+    PrivacyView,
+    TermsView,
+    api_root,
+    api_schema,
+    health,
+    ready,
+)
 from profiles.api_views import TeacherPublicDetailAPIView, TeacherSearchAPIView
 
 urlpatterns = [
@@ -26,6 +37,8 @@ urlpatterns = [
     path("a-propos/", AboutView.as_view(), name="about"),
     path("contact/", ContactView.as_view(), name="contact"),
     path("politique-confidentialite/", PrivacyView.as_view(), name="privacy"),
+    path("conditions-utilisation/", TermsView.as_view(), name="terms"),
+    path("integrite-academique/", AcademicIntegrityView.as_view(), name="academic-integrity"),
     path("admin/", admin.site.urls),
     path("compte/", include("accounts.urls")),
     path("profils/", include("profiles.urls")),
@@ -36,6 +49,7 @@ urlpatterns = [
     path("messages/", include("messaging.urls")),
     path("avis/", include("reviews.urls")),
     path("paiements/", include("payments.urls")),
+    path("interne/analytics/", include("analytics.urls")),
     path("health/", health, name="health"),
     path("ready/", ready, name="ready"),
     path("api/v1/schema/", api_schema, name="openapi-schema"),
@@ -57,4 +71,5 @@ urlpatterns = [
     path("api/v1/", include("notifications.api_urls")),
     path("api/v1/", include("reviews.api_urls")),
     path("api/v1/", include("payments.api_urls")),
+    path("api/v1/", include("analytics.api_urls")),
 ]

@@ -98,8 +98,11 @@ class MatchResultSerializer(serializers.ModelSerializer):
         return match.teacher.availabilities.exists()
 
     def get_verification(self, match):
-        from verification.models import IdentityVerification, VerificationStatus
-        from verification.models import ProfessionalCredential
+        from verification.models import (
+            IdentityVerification,
+            ProfessionalCredential,
+            VerificationStatus,
+        )
 
         user = match.teacher.user
         return {

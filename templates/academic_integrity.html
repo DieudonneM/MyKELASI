@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Charte d'intégrité académique | MyKELASI{% endblock %}
+{% block body_class %}legal-page{% endblock %}
+{% block main_class %}legal-shell{% endblock %}
+{% block content %}
+<header class="legal-hero">
+    <p class="eyebrow">Excellence et éthique</p>
+    <h1>Charte d'intégrité académique</h1>
+    <div class="legal-intro">
+        <p>MyKELASI s'engage à promouvoir un apprentissage authentique et à lutter contre la fraude académique.</p>
+        <p class="legal-date">Dernière mise à jour : 26 août 2026</p>
+    </div>
+</header>
+
+<div class="legal-layout">
+    <aside class="legal-nav" aria-label="Sommaire de la charte">
+        <p>Sommaire</p>
+        <nav>
+            <a href="#engagement">Notre engagement</a>
+            <a href="#autorise">Accompagnement autorisé</a>
+            <a href="#interdit">Pratiques strictement interdites</a>
+            <a href="#signalement">Circuit de signalement</a>
+            <a href="#sanctions">Sanctions applicables</a>
+            <a href="#engagement-enseignant">Engagement des enseignants</a>
+        </nav>
+    </aside>
+
+    <article class="legal-content">
+        <section id="engagement">
+            <span>01</span>
+            <h2>Notre engagement</h2>
+            <p>MyKELASI a pour mission de faciliter l'accès à un enseignement de qualité et personnalisé. Cette mission repose sur la confiance, le mérite et le respect des règles académiques.</p>
+            <p>Nous croyons que la véritable progression vient de l'effort accompagné, jamais de la substitution frauduleuse. Cette charte définit les limites éthiques de notre plateforme et les engagements réciproques de la communauté.</p>
+        </section>
+
+        <section id="autorise">
+            <span>02</span>
+            <h2>Accompagnement autorisé</h2>
+            <p>Les services proposés sur MyKELASI s'inscrivent dans un cadre pédagogique légitime et bienveillant :</p>
+            <ul>
+                <li><strong>Soutien scolaire et universitaire</strong> : explications, révisions, approfondissement des cours.</li>
+                <li><strong>Préparation aux examens</strong> : entraînement, méthodologie, gestion du stress, simulations.</li>
+                <li><strong>Coaching méthodologique</strong> : organisation du travail, prise de notes, recherche documentaire.</li>
+                <li><strong>Guidage pédagogique</strong> : orientation, choix de filière, construction de projet d'études.</li>
+                <li><strong>Aide à la compréhension</strong> : clarification de concepts, résolution guidée d'exercices.</li>
+            </ul>
+            <p>Ces services visent à rendre l'apprenant autonome et compétent, jamais à le dispenser de son propre travail.</p>
+        </section>
+
+        <section id="interdit">
+            <span>03</span>
+            <h2>Pratiques strictement interdites</h2>
+            <p>En aucun cas MyKELASI ne peut être utilisé pour :</p>
+            <ul>
+                <li><strong>Rédaction intégrale de travaux académiques</strong> : TFC (Travaux de Fin de Cycle), mémoires, thèses, rapports de stage, devoirs cotés ou compositions d'examen rédigés à la place de l'étudiant.</li>
+                <li><strong>Fraude aux examens</strong> : transmission de sujets, communication pendant les épreuves, usurpation d'identité.</li>
+                <li><strong>Plagiat ou contrefaçon</strong> : fourniture de contenus copiés sans citation ou autorisation.</li>
+                <li><strong>Falsification de documents</strong> : création ou modification de diplômes, relevés de notes ou attestations.</li>
+                <li><strong>Contournement des règles académiques</strong> : toute action visant à obtenir un avantage indu dans un parcours éducatif officiel.</li>
+            </ul>
+            <p>Toute offre, demande ou message sollicitant ces services est prohibée sur la plateforme.</p>
+        </section>
+
+        <section id="signalement">
+            <span>04</span>
+            <h2>Circuit de signalement</h2>
+            <p>La communauté MyKELASI est le premier rempart contre la fraude. Si vous constatez une demande ou une offre contraire à cette charte :</p>
+            <ul>
+                <li>Utilisez la fonction <strong>« Signaler »</strong> disponible sur chaque profil, message ou avis.</li>
+                <li>Contactez directement notre équipe de modération via le <a href="{% url 'contact' %}">formulaire de contact</a> en choisissant le sujet « Signalement ».</li>
+            </ul>
+            <p>Tous les signalements sont traités de manière confidentielle. L'identité du rapporteur n'est jamais divulguée à la personne signalée.</p>
+        </section>
+
+        <section id="sanctions">
+            <span>05</span>
+            <h2>Sanctions applicables</h2>
+            <p>En cas de violation avérée de cette charte, MyKELASI se réserve le droit de :</p>
+            <ul>
+                <li><strong>Avertir</strong> : rappel des règles et mise en garde formelle.</li>
+                <li><strong>Masquer ou supprimer</strong> : retrait du contenu non conforme (annonce, message, avis).</li>
+                <li><strong>Suspendre temporairement</strong> : blocage du compte pour une durée déterminée.</li>
+                <li><strong>Désactiver définitivement</strong> : fermeture du compte et interdiction de réinscription.</li>
+                <li><strong>Rapporter aux autorités</strong> : signalement aux institutions académiques ou judiciaires compétentes si la loi l'exige.</li>
+            </ul>
+            <p>Les décisions de modération sont journalisées et peuvent faire l'objet d'un recours via notre support.</p>
+        </section>
+
+        <section id="engagement-enseignant">
+            <span>06</span>
+            <h2>Engagement des enseignants</h2>
+            <p>En tant que formateur sur MyKELASI, je m'engage à :</p>
+            <ul>
+                <li>Refuser toute demande de rédaction frauduleuse de travaux académiques.</li>
+                <li>Signaler immédiatement tout apprenant sollicitant une telle prestation.</li>
+                <li>Centrer mon accompagnement sur la transmission de compétences et l'autonomie de l'apprenant.</li>
+                <li>Respecter la confidentialité des échanges et le droit à l'image des apprenants.</li>
+                <li>Maintenir mes qualifications et certifications à jour sur la plateforme.</li>
+            </ul>
+            <p>Cet engagement fait partie intégrante des conditions d'utilisation et de publication du profil enseignant.</p>
+        </section>
+    </article>
+</div>
+{% endblock %}

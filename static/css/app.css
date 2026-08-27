@@ -301,6 +301,14 @@ button[type="submit"]:hover { background: var(--accent-dark); transform: transla
 .dashboard-cta { min-height: 230px; display: flex; align-items: center; justify-content: space-between; gap: 36px; margin-top: 60px; padding-top: 50px; border-top: 1px solid #dce3df; }
 .dashboard-cta h2 { margin-top: 8px; font-size: clamp(2rem, 4vw, 3.4rem); font-weight: 600; letter-spacing: -.035em; }
 
+/* Dashboard stats */
+.dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+.stat-card { padding: 20px 24px; background: white; border: 1px solid #e0e6e3; border-radius: 8px; text-align: center; }
+.stat-card.stat-alert { background: #fef3c7; border-color: #f59e0b; }
+.stat-value { display: block; font-size: 2rem; font-weight: 700; color: var(--ink); line-height: 1; }
+.stat-card.stat-alert .stat-value { color: #b45309; }
+.stat-label { display: block; margin-top: 8px; font-size: .85rem; color: #64748b; }
+
 .inbox-row { min-height: 96px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 18px 22px; color: var(--ink); text-decoration: none; transition: background .2s ease; }
 .inbox-row + .inbox-row { border-top: 1px solid #e6ebe8; }
 .inbox-row:hover { background: #f8faf9; }

@@ -4,8 +4,8 @@ from .api_views import (
     LearningRequestDetailAPIView,
     LearningRequestListCreateAPIView,
     MatchListAPIView,
-    ProposalListCreateAPIView,
     ProposalActionAPIView,
+    ProposalListCreateAPIView,
     TeacherMatchedRequestListAPIView,
     TeacherProposalListCreateAPIView,
 )

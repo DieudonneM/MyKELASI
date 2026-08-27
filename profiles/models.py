@@ -60,6 +60,29 @@ class ServiceArea(models.Model):
         return self.name
 
 
+class ConfigurationVersion(models.Model):
+    key = models.CharField(max_length=80)
+    version = models.PositiveIntegerField()
+    value = models.JSONField(default=dict)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="configuration_versions",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("key", "-version")
+        constraints = [
+            models.UniqueConstraint(fields=("key", "version"), name="unique_configuration_version")
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValueError("Une configuration publiée est immuable.")
+        return super().save(*args, **kwargs)
+
+
 class LearnerProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
