@@ -2,7 +2,6 @@ from pathlib import Path
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -13,6 +12,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.roles import has_internal_role
 from accounts.services import record_audit
 from notifications.models import Notification
 
@@ -33,7 +33,10 @@ from .serializers_api import (
 class IsTeacher(BasePermission):
     def has_permission(self, request, view):
         return bool(
-            request.user.is_authenticated and request.user.account_type == "TEACHER"
+            request.user.is_authenticated
+            and request.user.is_active
+            and request.user.status == "ACTIVE"
+            and request.user.account_type == "TEACHER"
         )
 
 
@@ -42,9 +45,9 @@ class TeacherVerificationListCreateAPIView(generics.ListCreateAPIView):
     parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def get_queryset(self):
-        return list(
-            IdentityVerification.objects.filter(user=self.request.user)
-        ) + list(ProfessionalCredential.objects.filter(user=self.request.user))
+        return list(IdentityVerification.objects.filter(user=self.request.user)) + list(
+            ProfessionalCredential.objects.filter(user=self.request.user)
+        )
 
     def get_serializer_class(self):
         return (
@@ -63,9 +66,7 @@ class TeacherVerificationListCreateAPIView(generics.ListCreateAPIView):
         data = serializer.validated_data
         document = data.pop("document")
         if "document_type" in data:
-            item = IdentityVerification.objects.create(
-                user=request.user, document=document, **data
-            )
+            item = IdentityVerification.objects.create(user=request.user, document=document, **data)
         else:
             item = ProfessionalCredential.objects.create(
                 user=request.user, document=document, **data
@@ -76,13 +77,7 @@ class TeacherVerificationListCreateAPIView(generics.ListCreateAPIView):
 
 class VerificationReviewAPIView(APIView):
     def post(self, request, kind, pk):
-        if not (
-            request.user.is_authenticated
-            and (
-                request.user.is_superuser
-                or request.user.groups.filter(name="VERIFICATION").exists()
-            )
-        ):
+        if not has_internal_role(request.user, "VERIFICATION"):
             return Response({"detail": "Accès refusé."}, status=status.HTTP_403_FORBIDDEN)
         model = {
             "identity": IdentityVerification,
@@ -122,7 +117,9 @@ class VerificationReviewAPIView(APIView):
             body=(
                 "Votre document a été approuvé."
                 if new_status == VerificationStatus.APPROVED
-                else "Votre document a été refusé. Consultez le motif et déposez une nouvelle pièce."
+                else (
+                    "Votre document a été refusé. Consultez le motif et déposez une nouvelle pièce."
+                )
                 if new_status == VerificationStatus.REJECTED
                 else "Le statut de votre document de vérification a changé."
             ),
@@ -132,14 +129,9 @@ class VerificationReviewAPIView(APIView):
 
 class VerificationQueueAPIView(APIView):
     def get(self, request):
-        if not (
-            request.user.is_authenticated
-            and (
-                request.user.is_superuser
-                or request.user.groups.filter(name="VERIFICATION").exists()
-            )
-        ):
+        if not has_internal_role(request.user, "VERIFICATION"):
             return Response({"detail": "Accès refusé."}, status=status.HTTP_403_FORBIDDEN)
+        record_audit(actor=request.user, action="verification.queue_view", target=request.user)
         identity = IdentityVerification.objects.filter(status=VerificationStatus.PENDING)
         credentials = ProfessionalCredential.objects.filter(status=VerificationStatus.PENDING)
         results = [
@@ -161,7 +153,7 @@ class TeacherVerificationUploadAPIView(APIView):
         file_name = request.data.get("file_name", "")
         try:
             file_size = int(request.data.get("file_size", 0))
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             file_size = 0
         if not document_type or not file_name:
             return Response({"detail": "Type et nom de fichier obligatoires."}, status=400)
@@ -190,7 +182,7 @@ class TeacherVerificationUploadAPIView(APIView):
             offset = -1
         if chunk is None or offset != upload.received_size:
             return Response({"offset": upload.received_size}, status=409)
-        with default_storage.open(upload.chunk_file.name, "ab") as target:
+        with upload.chunk_file.storage.open(upload.chunk_file.name, "ab") as target:
             for piece in chunk.chunks():
                 target.write(piece)
         upload.received_size += chunk.size
@@ -200,7 +192,7 @@ class TeacherVerificationUploadAPIView(APIView):
         if upload.received_size != upload.file_size:
             upload.delete()
             return Response({"detail": "Taille reçue invalide."}, status=400)
-        with default_storage.open(upload.chunk_file.name, "rb") as source:
+        with upload.chunk_file.storage.open(upload.chunk_file.name, "rb") as source:
             content = source.read()
         content_type = {
             ".pdf": "application/pdf",

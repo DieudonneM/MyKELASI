@@ -62,6 +62,7 @@ urlpatterns = [
         TeacherPublicDetailAPIView.as_view(),
         name="api-teacher-detail",
     ),
+    path("api/v1/", include("profiles.admin_api_urls")),
     path("api/v1/", include("profiles.api_teacher_urls")),
     path("api/v1/", include("verification.api_urls")),
     path("api/v1/", include("profiles.api_learner_urls")),

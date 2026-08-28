@@ -28,7 +28,9 @@ urlpatterns = [
     path("verifier-email/<str:token>/", VerifyEmailView.as_view(), name="verify-email"),
     path("verification-invalide/", VerificationInvalidView.as_view(), name="verification-invalid"),
     path("interne/", InternalDashboardView.as_view(), name="internal-dashboard"),
-    path("interne/referentiels/", ReferentialsDashboardView.as_view(), name="referentials-dashboard"),
+    path(
+        "interne/referentiels/", ReferentialsDashboardView.as_view(), name="referentials-dashboard"
+    ),
     path("interne/support/", SupportDashboardView.as_view(), name="support-dashboard"),
     path(
         "mot-de-passe/oublie/",

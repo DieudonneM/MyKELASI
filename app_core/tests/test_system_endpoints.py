@@ -24,7 +24,16 @@ def test_openapi_schema_endpoint(client):
     response = client.get(reverse("openapi-schema"))
 
     assert response.status_code == 200
-    assert "MyKELASI API" in response.content.decode()
+    schema = response.json()
+    assert schema["info"]["title"] == "MyKELASI API"
+    assert len(schema["paths"]) >= 40
+    assert schema["components"]["schemas"]["PaginatedResponse"]["required"] == [
+        "count",
+        "next",
+        "previous",
+        "results",
+    ]
+    assert schema["components"]["schemas"]["DecimalAmount"]["type"] == "string"
 
 
 @pytest.mark.django_db

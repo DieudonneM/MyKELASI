@@ -19,7 +19,9 @@ from .services import accept_proposal, generate_matches, reject_proposal
 
 class IsTeacher(BasePermission):
     def has_permission(self, request, view):
-        return bool(request.user.is_authenticated and request.user.account_type == User.AccountType.TEACHER)
+        return bool(
+            request.user.is_authenticated and request.user.account_type == User.AccountType.TEACHER
+        )
 
 
 class LearningRequestListCreateAPIView(generics.ListCreateAPIView):
@@ -135,9 +137,11 @@ class TeacherMatchedRequestListAPIView(generics.ListAPIView):
     serializer_class = TeacherMatchedRequestSerializer
 
     def get_queryset(self):
-        return LearningRequest.objects.filter(
-            matches__teacher__user=self.request.user
-        ).select_related("learner", "subject", "level", "teaching_mode", "service_area").distinct()
+        return (
+            LearningRequest.objects.filter(matches__teacher__user=self.request.user)
+            .select_related("learner", "subject", "level", "teaching_mode", "service_area")
+            .distinct()
+        )
 
 
 class TeacherProposalListCreateAPIView(generics.ListCreateAPIView):
@@ -145,7 +149,9 @@ class TeacherProposalListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProposalSerializer
 
     def get_queryset(self):
-        return Proposal.objects.filter(teacher__user=self.request.user).select_related("teacher__user", "learning_request")
+        return Proposal.objects.filter(teacher__user=self.request.user).select_related(
+            "teacher__user", "learning_request"
+        )
 
     def create(self, request, *args, **kwargs):
         request_obj = get_object_or_404(
@@ -155,7 +161,11 @@ class TeacherProposalListCreateAPIView(generics.ListCreateAPIView):
         )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if Proposal.objects.filter(learning_request=request_obj, teacher=request.user.teacher_profile).exists():
+        if Proposal.objects.filter(
+            learning_request=request_obj, teacher=request.user.teacher_profile
+        ).exists():
             raise ValidationError("Vous avez déjà envoyé une proposition.")
-        proposal = serializer.save(learning_request=request_obj, teacher=request.user.teacher_profile)
+        proposal = serializer.save(
+            learning_request=request_obj, teacher=request.user.teacher_profile
+        )
         return Response(self.get_serializer(proposal).data, status=status.HTTP_201_CREATED)

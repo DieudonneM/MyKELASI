@@ -2,6 +2,8 @@ from django.urls import path
 
 from .api_views import (
     CurrentUserAPIView,
+    InternalMfaConfirmAPIView,
+    InternalMfaEnrollAPIView,
     LoginAPIView,
     LogoutAPIView,
     RefreshAPIView,
@@ -19,5 +21,7 @@ urlpatterns = [
     path("logout/", LogoutAPIView.as_view(), name="logout"),
     path("verify-email/", VerifyEmailAPIView.as_view(), name="verify-email"),
     path("me/", CurrentUserAPIView.as_view(), name="me"),
+    path("internal/mfa/enroll/", InternalMfaEnrollAPIView.as_view(), name="mfa-enroll"),
+    path("internal/mfa/confirm/", InternalMfaConfirmAPIView.as_view(), name="mfa-confirm"),
     path("internal/support/", SupportDashboardAPIView.as_view(), name="support-dashboard"),
 ]

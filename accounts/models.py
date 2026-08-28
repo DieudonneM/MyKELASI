@@ -50,6 +50,22 @@ class User(AbstractUser):
         return self.email
 
 
+class MfaDevice(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="mfa_device",
+    )
+    secret = models.CharField(max_length=64)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    last_verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "dispositif MFA"
+        verbose_name_plural = "dispositifs MFA"
+
+
 class AuditLog(models.Model):
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,

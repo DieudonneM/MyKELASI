@@ -156,9 +156,10 @@ def test_public_review_response_and_moderation_recalculate_score(client, review_
         reason="Contenu masqué après vérification.",
     )
 
-    assert TrustScoreSnapshot.objects.filter(
-        teacher_profile=teacher.teacher_profile
-    ).count() == snapshots_before + 1
+    assert (
+        TrustScoreSnapshot.objects.filter(teacher_profile=teacher.teacher_profile).count()
+        == snapshots_before + 1
+    )
     assert "reviews" not in teacher.teacher_profile.trust_score_snapshots.first().components
     hidden_response = client.get(teacher.teacher_profile.get_absolute_url())
     assert review.comment not in hidden_response.content.decode()

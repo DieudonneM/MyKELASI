@@ -10,9 +10,7 @@ from bookings.models import Booking
 from .models import Notification, NotificationPreference
 
 
-def notify_users(
-    *, users, kind, title, body, booking=None, proposal=None, learning_request=None
-):
+def notify_users(*, users, kind, title, body, booking=None, proposal=None, learning_request=None):
     return Notification.objects.bulk_create(
         [
             Notification(
@@ -27,6 +25,7 @@ def notify_users(
             for user in users
         ]
     )
+
 
 REMINDERS = (
     (

@@ -10,6 +10,7 @@ from django.views.generic import FormView, TemplateView, View
 
 from .forms import EmailAuthenticationForm, RegistrationForm
 from .models import User
+from .roles import has_internal_role
 from .services import record_audit, send_verification_email
 from .tokens import read_email_verification_token
 
@@ -60,9 +61,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             context["unread_notifications"] = Notification.objects.filter(
                 user=user, read_at__isnull=True
             ).count()
-            context["active_conversations"] = Conversation.objects.filter(
-                learner=user
-            ).count()
+            context["active_conversations"] = Conversation.objects.filter(learner=user).count()
         elif user.account_type == User.AccountType.TEACHER:
             from bookings.models import Booking
             from learning.models import Proposal
@@ -80,9 +79,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             context["unread_notifications"] = Notification.objects.filter(
                 user=user, read_at__isnull=True
             ).count()
-            context["active_conversations"] = Conversation.objects.filter(
-                teacher=user
-            ).count()
+            context["active_conversations"] = Conversation.objects.filter(teacher=user).count()
 
         return context
 
@@ -96,7 +93,7 @@ class VerifyEmailView(View):
         try:
             payload = read_email_verification_token(token)
             user = User.objects.get(pk=payload["user_id"], email=payload["email"])
-        except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, KeyError):
+        except signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, KeyError:
             return redirect("accounts:verification-invalid")
 
         if not user.email_verified:
@@ -126,9 +123,7 @@ class SupportDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "accounts/support_dashboard.html"
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_superuser and not request.user.groups.filter(
-            name__in=("SUPPORT", "ADMIN", "SUPER_ADMIN")
-        ).exists():
+        if not has_internal_role(request.user, "SUPPORT", "ADMIN", "SUPER_ADMIN"):
             from django.core.exceptions import PermissionDenied
 
             raise PermissionDenied("Accès réservé au support.")
@@ -153,9 +148,15 @@ class InternalDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "accounts/internal_dashboard.html"
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_superuser and not request.user.groups.filter(
-            name__in=("SUPPORT", "VERIFICATION", "FINANCE", "MODERATION", "ADMIN", "SUPER_ADMIN")
-        ).exists():
+        if not has_internal_role(
+            request.user,
+            "SUPPORT",
+            "VERIFICATION",
+            "FINANCE",
+            "MODERATION",
+            "ADMIN",
+            "SUPER_ADMIN",
+        ):
             from django.core.exceptions import PermissionDenied
 
             raise PermissionDenied("Accès réservé au personnel interne.")
@@ -164,7 +165,11 @@ class InternalDashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         from messaging.models import Report
         from payments.models import Payment
-        from verification.models import IdentityVerification, ProfessionalCredential, VerificationStatus
+        from verification.models import (
+            IdentityVerification,
+            ProfessionalCredential,
+            VerificationStatus,
+        )
 
         context = super().get_context_data(**kwargs)
         context["stats"] = {
@@ -176,9 +181,7 @@ class InternalDashboardView(LoginRequiredMixin, TemplateView):
             "open_reports": Report.objects.filter(
                 status__in=(Report.Status.OPEN, Report.Status.IN_REVIEW)
             ).count(),
-            "pending_payments": Payment.objects.filter(
-                status=Payment.Status.PENDING
-            ).count(),
+            "pending_payments": Payment.objects.filter(status=Payment.Status.PENDING).count(),
         }
         return context
 
@@ -187,9 +190,7 @@ class ReferentialsDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "accounts/referentials_dashboard.html"
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_superuser and not request.user.groups.filter(
-            name__in=("ADMIN", "SUPER_ADMIN")
-        ).exists():
+        if not has_internal_role(request.user, "ADMIN", "SUPER_ADMIN"):
             from django.core.exceptions import PermissionDenied
 
             raise PermissionDenied("Accès réservé aux administrateurs.")
@@ -208,7 +209,10 @@ class ReferentialsDashboardView(LoginRequiredMixin, TemplateView):
 
 class DeactivateAccountView(LoginRequiredMixin, View):
     def post(self, request):
+        from verification.services import purge_user_private_documents
+
         user = request.user
+        purge_user_private_documents(user)
         user.status = User.Status.DEACTIVATED
         user.is_active = False
         user.save(update_fields=("status", "is_active", "updated_at"))

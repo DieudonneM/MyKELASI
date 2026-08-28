@@ -13,7 +13,9 @@ from profiles.models import ConfigurationVersion, Level, ServiceArea, Subject, T
 
 @pytest.mark.django_db
 def test_events_are_pseudonymized_and_kpis_use_server_data():
-    user = get_user_model().objects.create_user(email="analytics@example.com", account_type="LEARNER")
+    user = get_user_model().objects.create_user(
+        email="analytics@example.com", account_type="LEARNER"
+    )
     event = record_event(name="request.created", actor=user, context={"request_id": 4})
     LearningRequest.objects.create(
         learner=user,

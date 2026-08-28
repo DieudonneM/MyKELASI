@@ -4,6 +4,7 @@ from importlib import import_module
 environment = os.getenv("DJANGO_ENV", "development")
 settings_modules = {
     "development": "app_core.settings.development",
+    "staging": "app_core.settings.staging",
     "test": "app_core.settings.test",
     "production": "app_core.settings.production",
 }

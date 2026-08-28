@@ -3,6 +3,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -105,6 +106,11 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+PRIVATE_MEDIA_ROOT = Path(
+    env("DJANGO_PRIVATE_MEDIA_ROOT", default=str(BASE_DIR.parent / "mykelasi-private-media"))
+)
+if PRIVATE_MEDIA_ROOT.resolve() == MEDIA_ROOT.resolve():
+    raise ImproperlyConfigured("DJANGO_PRIVATE_MEDIA_ROOT doit être distinct de MEDIA_ROOT.")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -141,9 +147,7 @@ REST_FRAMEWORK = {
 }
 
 REST_FRAMEWORK["PAGE_SIZE"] = 12
-REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"] = (
-    "rest_framework.pagination.PageNumberPagination"
-)
+REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"] = "rest_framework.pagination.PageNumberPagination"
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),

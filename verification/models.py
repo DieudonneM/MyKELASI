@@ -3,6 +3,7 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+from .storage import PrivateDocumentStorage
 from .validators import validate_document
 
 
@@ -32,7 +33,7 @@ class VerificationUpload(models.Model):
     file_name = models.CharField(max_length=255)
     file_size = models.PositiveIntegerField()
     received_size = models.PositiveIntegerField(default=0)
-    chunk_file = models.FileField(upload_to=upload_chunk_path)
+    chunk_file = models.FileField(upload_to=upload_chunk_path, storage=PrivateDocumentStorage())
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -52,7 +53,11 @@ class IdentityVerification(models.Model):
         related_name="identity_verifications",
     )
     document_type = models.CharField(max_length=20, choices=DocumentType.choices)
-    document = models.FileField(upload_to=private_document_path, validators=[validate_document])
+    document = models.FileField(
+        upload_to=private_document_path,
+        storage=PrivateDocumentStorage(),
+        validators=[validate_document],
+    )
     status = models.CharField(
         max_length=10,
         choices=VerificationStatus.choices,
@@ -89,7 +94,11 @@ class ProfessionalCredential(models.Model):
     title = models.CharField(max_length=180)
     institution = models.CharField(max_length=180, blank=True)
     issued_year = models.PositiveSmallIntegerField(null=True, blank=True)
-    document = models.FileField(upload_to=private_document_path, validators=[validate_document])
+    document = models.FileField(
+        upload_to=private_document_path,
+        storage=PrivateDocumentStorage(),
+        validators=[validate_document],
+    )
     status = models.CharField(
         max_length=10,
         choices=VerificationStatus.choices,

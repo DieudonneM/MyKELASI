@@ -171,9 +171,10 @@ class TargetReportCreateView(LoginRequiredMixin, View):
 
 class ModeratorRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated and not request.user.groups.filter(
-            name="MODERATION"
-        ).exists():
+        if (
+            request.user.is_authenticated
+            and not request.user.groups.filter(name="MODERATION").exists()
+        ):
             raise PermissionDenied("Accès réservé à la modération.")
         return super().dispatch(request, *args, **kwargs)
 

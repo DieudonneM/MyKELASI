@@ -54,7 +54,9 @@ def test_learner_profile_api_get_and_patch(learner_user):
         "level_ids": [level.pk],
         "preferred_service_area_id": area.pk,
     }
-    patch_response = client.patch(reverse("profiles-learner-api:learner-profile"), patch_data, format="json")
+    patch_response = client.patch(
+        reverse("profiles-learner-api:learner-profile"), patch_data, format="json"
+    )
     assert patch_response.status_code == 200
     assert patch_response.data["preferred_service_area"]["id"] == area.pk
     assert patch_response.data["completion_percentage"] == 100

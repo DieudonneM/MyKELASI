@@ -84,9 +84,11 @@ def moderate_review(*, review, moderator, action, reason):
     reason = reason.strip()
     if not reason:
         raise ValidationError("Une raison de modération est obligatoire.")
-    review = Review.objects.select_for_update().select_related(
-        "session__booking__teacher__teacher_profile"
-    ).get(pk=review.pk)
+    review = (
+        Review.objects.select_for_update()
+        .select_related("session__booking__teacher__teacher_profile")
+        .get(pk=review.pk)
+    )
     actions = {
         "hide": (Review.Status.HIDDEN, ReviewModerationAction.Action.HIDDEN),
         "restore": (Review.Status.PUBLISHED, ReviewModerationAction.Action.RESTORED),
@@ -99,9 +101,7 @@ def moderate_review(*, review, moderator, action, reason):
     review.moderation_reason = reason
     review.moderated_by = moderator
     review.moderated_at = timezone.now()
-    review.save(
-        update_fields=("status", "moderation_reason", "moderated_by", "moderated_at")
-    )
+    review.save(update_fields=("status", "moderation_reason", "moderated_by", "moderated_at"))
     ReviewModerationAction.objects.create(
         review=review,
         actor=moderator,
@@ -165,10 +165,13 @@ def recalculate_teacher_trust_score(*, teacher_profile, source):
     )
     review_count = review_values["count"]
     if review_count:
-        average = sum(
-            review_values[field]
-            for field in ("rating", "punctuality", "communication", "quality")
-        ) / 4
+        average = (
+            sum(
+                review_values[field]
+                for field in ("rating", "punctuality", "communication", "quality")
+            )
+            / 4
+        )
         components["reviews"] = round(average / 5 * 100, 2)
         weights["reviews"] = 25
 

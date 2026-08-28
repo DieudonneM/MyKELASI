@@ -16,7 +16,7 @@ from bookings.models import Booking
 from .models import Payment
 from .providers import verify_webhook_signature
 from .serializers import PaymentSerializer
-from .services import create_payment, process_payment_webhook
+from .services import cancel_payment, create_payment, process_payment_webhook
 
 
 class PaymentCreateAPIView(APIView):
@@ -50,6 +50,25 @@ class PaymentDetailAPIView(generics.RetrieveAPIView):
         ).select_related("booking")
 
 
+class PaymentListAPIView(generics.ListAPIView):
+    serializer_class = PaymentSerializer
+
+    def get_queryset(self):
+        return Payment.objects.filter(payer=self.request.user).select_related("booking")
+
+
+class PaymentCancelAPIView(APIView):
+    def post(self, request, public_id):
+        payment = get_object_or_404(Payment, public_id=public_id)
+        try:
+            payment = cancel_payment(payment=payment, payer=request.user)
+        except DjangoPermissionDenied as error:
+            raise PermissionDenied(str(error)) from None
+        except DjangoValidationError as error:
+            raise ValidationError(error.messages) from None
+        return Response(PaymentSerializer(payment).data)
+
+
 class PaymentWebhookAPIView(APIView):
     authentication_classes = ()
     permission_classes = (AllowAny,)
@@ -72,7 +91,7 @@ class PaymentWebhookAPIView(APIView):
                 payload=payload,
                 raw_payload=raw_payload,
             )
-        except (json.JSONDecodeError, UnicodeDecodeError):
+        except json.JSONDecodeError, UnicodeDecodeError:
             return Response(
                 {"detail": "Payload JSON invalide."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -94,17 +113,23 @@ class TeacherEarningsSummaryAPIView(APIView):
     permission_classes = (IsTeacher,)
 
     def get(self, request):
-        payments = Payment.objects.filter(booking__teacher=request.user, status=Payment.Status.SUCCESS)
+        payments = Payment.objects.filter(
+            booking__teacher=request.user, status=Payment.Status.SUCCESS
+        )
         payouts = payments.filter(payout__isnull=False)
         total = sum((payment.amount for payment in payments), 0)
         paid = payouts.aggregate(value=Sum("payout__amount"))["value"] or 0
-        return Response({
-            "total_earnings": f"{total:.2f}",
-            "pending_balance": f"{total - paid:.2f}",
-            "paid_balance": f"{paid:.2f}",
-            "currency": "CDF",
-            "last_payout_at": payouts.order_by("-payout__created_at").values_list("payout__created_at", flat=True).first(),
-        })
+        return Response(
+            {
+                "total_earnings": f"{total:.2f}",
+                "pending_balance": f"{total - paid:.2f}",
+                "paid_balance": f"{paid:.2f}",
+                "currency": "CDF",
+                "last_payout_at": payouts.order_by("-payout__created_at")
+                .values_list("payout__created_at", flat=True)
+                .first(),
+            }
+        )
 
 
 class TeacherTransactionListAPIView(generics.ListAPIView):
@@ -120,13 +145,17 @@ class TeacherPayoutListAPIView(generics.ListAPIView):
 
     def get(self, request):
         payouts = request.user.payouts.select_related("payment")
-        return Response({"results": [
+        return Response(
             {
-                "id": payout.pk,
-                "amount": str(payout.amount),
-                "status": payout.status.lower(),
-                "reference": str(payout.reference),
-                "paid_at": payout.created_at,
+                "results": [
+                    {
+                        "id": payout.pk,
+                        "amount": str(payout.amount),
+                        "status": payout.status.lower(),
+                        "reference": str(payout.reference),
+                        "paid_at": payout.created_at,
+                    }
+                    for payout in payouts
+                ]
             }
-            for payout in payouts
-        ]})
+        )

@@ -71,8 +71,12 @@ class LearningRequest(models.Model):
         if bool(self.preferred_date) != bool(self.preferred_start_time):
             raise ValidationError(
                 {
-                    "preferred_date": "La date et l'heure souhaitées doivent être renseignées ensemble.",
-                    "preferred_start_time": "La date et l'heure souhaitées doivent être renseignées ensemble.",
+                    "preferred_date": (
+                        "La date et l'heure souhaitées doivent être renseignées ensemble."
+                    ),
+                    "preferred_start_time": (
+                        "La date et l'heure souhaitées doivent être renseignées ensemble."
+                    ),
                 }
             )
 

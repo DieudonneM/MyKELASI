@@ -7,6 +7,7 @@ djangorestframework==3.18.0
 djangorestframework-simplejwt==5.5.1
 inflection==0.5.1
 Pillow==12.3.0
+pyotp==2.10.0
 psycopg2-binary==2.9.12
 PyJWT==2.13.0
 pytest==9.1.1

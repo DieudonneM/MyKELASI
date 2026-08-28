@@ -28,7 +28,12 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def get_response(self, obj):
         if hasattr(obj, "response") and not obj.response.is_hidden:
-            return {"id": obj.response.pk, "message": obj.response.content, "content": obj.response.content, "created_at": obj.response.created_at}
+            return {
+                "id": obj.response.pk,
+                "message": obj.response.content,
+                "content": obj.response.content,
+                "created_at": obj.response.created_at,
+            }
         return None
 
 

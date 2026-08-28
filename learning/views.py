@@ -43,14 +43,19 @@ class LearningRequestCreateMixin(LearnerRequiredMixin, CreateView):
 class LearningRequestCreateView(LearningRequestCreateMixin):
     form_class = ShortLearningRequestForm
     form_title = "Décrire mon besoin"
-    form_intro = "Commencez avec les informations essentielles. Vous pourrez préciser votre demande ensuite."
+    form_intro = (
+        "Commencez avec les informations essentielles. Vous pourrez préciser votre demande ensuite."
+    )
     is_short_form = True
 
 
 class DetailedLearningRequestCreateView(LearningRequestCreateMixin):
     form_class = DetailedLearningRequestForm
     form_title = "Préciser ma demande"
-    form_intro = "Ajoutez un créneau, une zone et une fréquence pour recevoir des correspondances plus précises."
+    form_intro = (
+        "Ajoutez un créneau, une zone et une fréquence pour recevoir des "
+        "correspondances plus précises."
+    )
     is_short_form = False
 
 
@@ -142,5 +147,6 @@ class ProposalActionView(LearnerRequiredMixin, View):
             handler(proposal_id=proposal.public_id, learner=request.user)
         except (PermissionError, ValueError) as error:
             from django.contrib import messages
+
             messages.error(request, str(error))
         return redirect(proposal.learning_request)

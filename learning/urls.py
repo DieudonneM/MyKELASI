@@ -25,5 +25,9 @@ urlpatterns = [
         ProposalCreateView.as_view(),
         name="proposal-create",
     ),
-    path("propositions/<uuid:public_id>/<str:action>/", ProposalActionView.as_view(), name="proposal-action"),
+    path(
+        "propositions/<uuid:public_id>/<str:action>/",
+        ProposalActionView.as_view(),
+        name="proposal-action",
+    ),
 ]

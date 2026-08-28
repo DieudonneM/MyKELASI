@@ -7,6 +7,8 @@ from django.views.generic import TemplateView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.roles import has_internal_role
+from accounts.services import record_audit
 from profiles.models import ServiceArea, Subject
 
 from .services import product_kpis
@@ -14,9 +16,7 @@ from .services import product_kpis
 
 class AnalyticsAccessMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_superuser and not request.user.groups.filter(
-            name__in=("ADMIN", "SUPER_ADMIN")
-        ).exists():
+        if not has_internal_role(request.user, "ADMIN", "SUPER_ADMIN"):
             raise PermissionDenied("Accès réservé aux administrateurs.")
         return super().dispatch(request, *args, **kwargs)
 
@@ -52,11 +52,9 @@ class AnalyticsDashboardView(AnalyticsAccessMixin, TemplateView):
 
 class AnalyticsDashboardAPIView(APIView):
     def get(self, request):
-        if not request.user.is_authenticated or not (
-            request.user.is_superuser
-            or request.user.groups.filter(name__in=("ADMIN", "SUPER_ADMIN")).exists()
-        ):
+        if not has_internal_role(request.user, "ADMIN", "SUPER_ADMIN"):
             return Response({"detail": "Accès refusé."}, status=403)
+        record_audit(actor=request.user, action="analytics.dashboard_view", target=request.user)
         return Response(
             product_kpis(
                 start=_date_filter(request.query_params.get("from")),

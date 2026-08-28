@@ -82,9 +82,10 @@ class VerificationReviewSerializer(serializers.Serializer):
     rejection_reason = serializers.CharField(required=False, allow_blank=True, max_length=2000)
 
     def validate(self, attrs):
-        if attrs["status"] == VerificationStatus.REJECTED and not attrs.get(
-            "rejection_reason", ""
-        ).strip():
+        if (
+            attrs["status"] == VerificationStatus.REJECTED
+            and not attrs.get("rejection_reason", "").strip()
+        ):
             raise serializers.ValidationError(
                 {"rejection_reason": "Le motif est obligatoire pour un rejet."}
             )

@@ -63,10 +63,13 @@ def test_due_reminders_are_sent_once_per_participant(booking_data):
 
     assert send_due_session_reminders(now=now) == 2
     assert send_due_session_reminders(now=now) == 0
-    assert Notification.objects.filter(
-        booking=booking,
-        kind__startswith="SESSION_REMINDER",
-    ).count() == 2
+    assert (
+        Notification.objects.filter(
+            booking=booking,
+            kind__startswith="SESSION_REMINDER",
+        ).count()
+        == 2
+    )
     assert len(mail.outbox) == 2
 
 
@@ -100,10 +103,13 @@ def test_user_only_sees_and_reads_own_notifications(client, booking_data):
         end_at=start_at + timedelta(hours=1),
     )
     transition_booking(booking=booking, actor=teacher, action="confirm")
-    assert Notification.objects.filter(
-        booking=booking,
-        kind=Notification.Kind.BOOKING_CREATED,
-    ).count() == 2
+    assert (
+        Notification.objects.filter(
+            booking=booking,
+            kind=Notification.Kind.BOOKING_CREATED,
+        ).count()
+        == 2
+    )
     send_due_session_reminders(now=now)
     learner_notification = Notification.objects.get(
         booking=booking,
@@ -128,12 +134,8 @@ def test_user_only_sees_and_reads_own_notifications(client, booking_data):
             kind=Notification.Kind.BOOKING_CREATED,
         ),
     ]
-    teacher_response = client.post(
-        reverse("notifications:read", args=(teacher_notification.pk,))
-    )
-    learner_response = client.post(
-        reverse("notifications:read", args=(learner_notification.pk,))
-    )
+    teacher_response = client.post(reverse("notifications:read", args=(teacher_notification.pk,)))
+    learner_response = client.post(reverse("notifications:read", args=(learner_notification.pk,)))
     assert teacher_response.status_code == 404
     assert learner_response.status_code == 302
     learner_notification.refresh_from_db()

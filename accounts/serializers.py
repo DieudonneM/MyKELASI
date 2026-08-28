@@ -3,7 +3,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .models import User
+from .mfa import confirm_device
+from .models import MfaDevice, User
 from .services import send_verification_email
 from .tokens import read_email_verification_token
 
@@ -42,12 +43,21 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    mfa_code = serializers.CharField(write_only=True, required=False)
+
     def validate(self, attrs):
         data = super().validate(attrs)
         if self.user.status != User.Status.ACTIVE:
             raise AuthenticationFailed("Ce compte n'est pas disponible.")
         if not self.user.email_verified:
             raise AuthenticationFailed("Vérifiez votre adresse email avant de vous connecter.")
+        if self.user.is_internal:
+            code = attrs.get("mfa_code")
+            device = getattr(self.user, "mfa_device", None)
+            if device is None:
+                raise AuthenticationFailed("La configuration MFA de ce compte est requise.")
+            if not confirm_device(user=self.user, code=code):
+                raise AuthenticationFailed("Code MFA invalide.")
         from .services import record_audit
 
         record_audit(actor=self.user, action="auth.login", target=self.user)
@@ -61,7 +71,7 @@ class EmailVerificationSerializer(serializers.Serializer):
         try:
             payload = read_email_verification_token(self.validated_data["token"])
             user = User.objects.get(pk=payload["user_id"], email=payload["email"])
-        except (signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, KeyError):
+        except signing.BadSignature, signing.SignatureExpired, User.DoesNotExist, KeyError:
             raise serializers.ValidationError({"token": "Lien invalide ou expiré."}) from None
 
         if not user.email_verified:
@@ -83,3 +93,20 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ("id", "email", "first_name", "last_name", "account_type", "email_verified")
         read_only_fields = fields
+
+
+class MfaCodeSerializer(serializers.Serializer):
+    code = serializers.CharField(write_only=True, min_length=6, max_length=6)
+
+
+class MfaDeviceSerializer(serializers.ModelSerializer):
+    provisioning_uri = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MfaDevice
+        fields = ("confirmed_at", "provisioning_uri")
+        read_only_fields = fields
+
+    def get_provisioning_uri(self, obj):
+        issuer = "MyKELASI"
+        return f"otpauth://totp/{issuer}:{obj.user.email}?secret={obj.secret}&issuer={issuer}"

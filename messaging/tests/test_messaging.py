@@ -161,9 +161,7 @@ def test_api_report_grants_audited_moderator_read_access(conversation_data):
     assert report_response.status_code == 201
 
     client.force_authenticate(moderator)
-    read_response = client.get(
-        reverse("messaging-api:messages", args=(conversation.public_id,))
-    )
+    read_response = client.get(reverse("messaging-api:messages", args=(conversation.public_id,)))
     assert read_response.status_code == 200
     assert ReportAction.objects.filter(
         report__public_id=report_response.data["public_id"],
@@ -197,9 +195,7 @@ def test_moderation_queue_is_restricted_and_actions_are_audited(client, conversa
 
     client.force_login(moderator)
     assert client.get(reverse("messaging:moderation-list")).status_code == 200
-    detail_response = client.get(
-        reverse("messaging:moderation-detail", args=(report.public_id,))
-    )
+    detail_response = client.get(reverse("messaging:moderation-detail", args=(report.public_id,)))
     assert detail_response.status_code == 200
     action_response = client.post(
         reverse("messaging:moderation-detail", args=(report.public_id,)),
@@ -233,7 +229,9 @@ def test_moderation_can_warn_suspend_and_restore_report_target(conversation_data
 
     transition_report(report=report, moderator=moderator, action="warn", note="Rappel des règles.")
     assert teacher.notifications.filter(kind="MODERATION_UPDATED").exists()
-    transition_report(report=report, moderator=moderator, action="suspend", note="Suspension temporaire.")
+    transition_report(
+        report=report, moderator=moderator, action="suspend", note="Suspension temporaire."
+    )
     teacher.refresh_from_db()
     assert teacher.status == teacher.Status.SUSPENDED
     assert not teacher.teacher_profile.is_public

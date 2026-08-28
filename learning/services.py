@@ -1,16 +1,18 @@
-from django.conf import settings
 from django.db import transaction
 from django.db.models import Avg
 
 from profiles.models import TeacherProfile
+from profiles.services import matching_weights
 
 from .models import LearningEvent, LearningRequest, MatchResult, Proposal
 
 
 @transaction.atomic
 def accept_proposal(*, proposal_id, learner):
-    proposal = Proposal.objects.select_for_update().select_related("learning_request").get(
-        public_id=proposal_id
+    proposal = (
+        Proposal.objects.select_for_update()
+        .select_related("learning_request")
+        .get(public_id=proposal_id)
     )
     request = LearningRequest.objects.select_for_update().get(pk=proposal.learning_request_id)
     if request.learner_id != learner.pk:
@@ -19,9 +21,9 @@ def accept_proposal(*, proposal_id, learner):
         return proposal
     if proposal.status != Proposal.Status.SENT or request.status == LearningRequest.Status.CLOSED:
         raise ValueError("Cette proposition n'est plus disponible.")
-    Proposal.objects.filter(
-        learning_request=request, status=Proposal.Status.SENT
-    ).exclude(pk=proposal.pk).update(status=Proposal.Status.REJECTED)
+    Proposal.objects.filter(learning_request=request, status=Proposal.Status.SENT).exclude(
+        pk=proposal.pk
+    ).update(status=Proposal.Status.REJECTED)
     proposal.status = Proposal.Status.ACCEPTED
     proposal.save(update_fields=("status", "updated_at"))
     request.status = LearningRequest.Status.CLOSED
@@ -38,8 +40,10 @@ def accept_proposal(*, proposal_id, learner):
 
 @transaction.atomic
 def reject_proposal(*, proposal_id, learner):
-    proposal = Proposal.objects.select_for_update().select_related("learning_request").get(
-        public_id=proposal_id
+    proposal = (
+        Proposal.objects.select_for_update()
+        .select_related("learning_request")
+        .get(public_id=proposal_id)
     )
     if proposal.learning_request.learner_id != learner.pk:
         raise PermissionError("Cette proposition ne vous appartient pas.")
@@ -87,7 +91,7 @@ def _score_teacher(learning_request, teacher):
         "reputation": 10,
         "response_rate": 5,
     }
-    weights = {**default_weights, **getattr(settings, "MATCHING_WEIGHTS", {})}
+    weights = {**default_weights, **matching_weights()}
     score = 0
     reasons = []
 
@@ -100,17 +104,21 @@ def _score_teacher(learning_request, teacher):
     if teacher.teaching_modes.filter(pk=learning_request.teaching_mode_id).exists():
         score += weights["teaching_mode"]
         reasons.append("Mode d'enseignement compatible")
-    if not learning_request.service_area_id or teacher.service_areas.filter(
-        pk=learning_request.service_area_id
-    ).exists():
+    if (
+        not learning_request.service_area_id
+        or teacher.service_areas.filter(pk=learning_request.service_area_id).exists()
+    ):
         score += weights["service_area"]
         reasons.append("Zone compatible")
     if teacher.hourly_rate is not None and teacher.hourly_rate <= learning_request.budget_max:
         score += weights["budget"]
         reasons.append("Budget compatible")
-    if learning_request.preferred_date and teacher.availabilities.filter(
-        weekday=learning_request.preferred_date.isoweekday()
-    ).exists():
+    if (
+        learning_request.preferred_date
+        and teacher.availabilities.filter(
+            weekday=learning_request.preferred_date.isoweekday()
+        ).exists()
+    ):
         score += weights["availability"]
         reasons.append("Disponible le jour souhaité")
     elif not learning_request.preferred_date and teacher.availabilities.exists():

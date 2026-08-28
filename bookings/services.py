@@ -4,6 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from learning.models import LearningEvent, LearningRequest, Proposal
+from profiles.services import booking_currency, cancellation_policy
 
 from .models import Booking, BookingTransition, Session
 
@@ -63,7 +64,8 @@ def create_booking(*, proposal, learner, start_at, end_at):
         teaching_mode=proposal.learning_request.teaching_mode,
         service_area=proposal.learning_request.service_area,
         amount=proposal.amount,
-        cancellation_policy=CANCELLATION_POLICY,
+        currency=booking_currency(),
+        cancellation_policy=cancellation_policy() or CANCELLATION_POLICY,
     )
     proposal.status = Proposal.Status.ACCEPTED
     proposal.save(update_fields=("status", "updated_at"))

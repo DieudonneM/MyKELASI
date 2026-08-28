@@ -193,9 +193,10 @@ def test_signed_webhook_is_strict_idempotent_and_balanced(confirmed_booking):
         for entry in payment.ledger_entries.filter(entry_type=LedgerEntry.EntryType.CREDIT)
     )
     assert debits == credits == Decimal("20000.00")
-    assert payment.booking.proposal.learning_request.events.filter(
-        name="payment.completed"
-    ).count() == 1
+    assert (
+        payment.booking.proposal.learning_request.events.filter(name="payment.completed").count()
+        == 1
+    )
 
     entry = payment.ledger_entries.first()
     entry.memo = "Modification interdite"
@@ -352,3 +353,61 @@ def test_payment_api_and_receipt_access_are_private(client, confirmed_booking):
     receipt_response = client.get(receipt_url)
     assert receipt_response.status_code == 200
     assert str(payment.reference) in receipt_response.content.decode()
+
+
+@pytest.mark.django_db
+def test_payment_list_api_only_returns_payer_payments(confirmed_booking):
+    learner, _, booking = confirmed_booking
+    other_learner = get_user_model().objects.create_user(
+        email="other-payment-learner@example.com",
+        account_type="LEARNER",
+    )
+    own_payment, _ = create_payment(
+        booking=booking,
+        payer=learner,
+        idempotency_key="payment-list-owner",
+    )
+
+    api_client = APIClient()
+    api_client.force_authenticate(learner)
+    response = api_client.get(reverse("payments-api:list"))
+
+    assert response.status_code == 200
+    assert response.data["count"] == 1
+    assert response.data["results"][0]["public_id"] == str(own_payment.public_id)
+
+    api_client.force_authenticate(other_learner)
+    assert api_client.get(reverse("payments-api:list")).data["results"] == []
+
+
+@pytest.mark.django_db
+def test_payment_cancel_api_requires_payer_and_allows_a_new_attempt(confirmed_booking):
+    learner, _, booking = confirmed_booking
+    outsider = get_user_model().objects.create_user(
+        email="payment-cancel-outsider@example.com",
+        account_type="LEARNER",
+    )
+    payment, _ = create_payment(
+        booking=booking,
+        payer=learner,
+        idempotency_key="payment-cancel-original",
+    )
+    url = reverse("payments-api:cancel", args=(payment.public_id,))
+    api_client = APIClient()
+
+    api_client.force_authenticate(outsider)
+    assert api_client.post(url).status_code == 403
+
+    api_client.force_authenticate(learner)
+    response = api_client.post(url)
+    payment.refresh_from_db()
+    resumed, created = create_payment(
+        booking=booking,
+        payer=learner,
+        idempotency_key="payment-cancel-resume",
+    )
+
+    assert response.status_code == 200
+    assert payment.status == Payment.Status.CANCELLED
+    assert created is True
+    assert resumed.status == Payment.Status.PENDING

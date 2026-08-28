@@ -452,37 +452,37 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 9.1 - Accès et sécurité Admin
 
-- [ ] Créer comptes internes séparés des comptes publics.
-- [ ] Définir matrice permissions support/vérification/finance/modération/admin.
-- [ ] Activer MFA pour admin et super-admin avant production.
-- [ ] Ajouter journalisation des connexions et actions privilégiées.
+- [x] Créer comptes internes séparés des comptes publics.
+- [x] Définir matrice permissions support/vérification/finance/modération/admin.
+- [x] Activer MFA pour admin et super-admin avant production.
+- [x] Ajouter journalisation des connexions et actions privilégiées.
 - [ ] Tester que chaque équipe ne voit que ses données nécessaires.
 
 ## Étape 9.2 - Vérification
 
 - [x] File des documents `pending`.
 - [x] Consultation sécurisée et auditée des documents.
-- [ ] Actions approuver, rejeter, expirer avec motif.
+- [x] Actions approuver, rejeter, expirer avec motif.
 - [x] Notifications au Formateur.
 - [x] Historique non modifiable des décisions.
 - [ ] Tester absence d'accès public aux fichiers.
 
 ## Étape 9.3 - Modération et support
 
-- [ ] File des profils, messages, propositions, réservations et avis signalés.
-- [ ] Attribution, statut, priorité et historique du signalement.
-- [ ] Actions masquer, restaurer, avertir, suspendre et clôturer.
-- [ ] Accès temporaire et audité aux conversations signalées.
+- [x] File des profils, messages, propositions, réservations et avis signalés.
+- [x] Attribution, statut, priorité et historique du signalement.
+- [x] Actions masquer, restaurer, avertir, suspendre et clôturer.
+- [x] Accès temporaire et audité aux conversations signalées.
 - [x] Écran support des comptes, demandes et réservations sans données finance inutiles.
-- [ ] Gestion des disputes et communication aux parties.
+- [x] Gestion des disputes et communication aux parties.
 
 ## Étape 9.4 - Finance
 
 - [x] Liste paiements, webhooks, remboursements, ledger et versements.
-- [ ] Rapprochement manuel avec référence externe.
-- [ ] Traitement des paiements bloqués et litiges.
-- [ ] Export contrôlé des données financières.
-- [ ] Journalisation de toute modification financière.
+- [x] Rapprochement manuel avec référence externe.
+- [x] Traitement des paiements bloqués et litiges.
+- [x] Export contrôlé des données financières.
+- [x] Journalisation de toute modification financière.
 - [x] Vérifier qu'aucune écriture ledger existante n'est modifiable silencieusement.
 
 ## Étape 9.5 - Référentiels et configuration
@@ -496,12 +496,12 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 ## Étape 9.6 - Analytics produit
 
 - [x] Modèle événements avec données minimales et pseudonymisables.
-- [ ] KPI demandes, matches, propositions, bookings et sessions terminées.
-- [ ] KPI paiements, GMV, commission, annulations, no-show et litiges.
-- [ ] Conversion demande → réservation et réservation → session terminée.
-- [ ] Taux de réponse et taux de réachat.
-- [ ] Dashboard filtrable par période, matière et zone.
-- [ ] Vérifier que le North Star repose sur les sessions réellement terminées.
+- [x] KPI demandes, matches, propositions, bookings et sessions terminées.
+- [x] KPI paiements, GMV, commission, annulations, no-show et litiges.
+- [x] Conversion demande → réservation et réservation → session terminée.
+- [x] Taux de réponse et taux de réachat.
+- [x] Dashboard filtrable par période, matière et zone.
+- [x] Vérifier que le North Star repose sur les sessions réellement terminées.
 
 ---
 
@@ -554,61 +554,61 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 11.1 - Écrans communs
 
-- [ ] Splash et restauration de session.
-- [ ] Onboarding.
-- [ ] Connexion.
-- [ ] Inscription avec choix de rôle.
-- [ ] Vérification email.
-- [ ] Erreur réseau et retry.
-- [ ] Session expirée et reconnexion.
-- [ ] Paramètres et déconnexion.
+- [x] Splash et restauration de session.
+- [x] Onboarding.
+- [x] Connexion.
+- [x] Inscription avec choix de rôle.
+- [x] Vérification email.
+- [x] Erreur réseau et retry.
+- [x] Session expirée et reconnexion.
+- [x] Paramètres et déconnexion.
 
 ## Étape 11.2 - Écrans Apprenant
 
-- [ ] `LearnerDashboardScreen`.
-- [ ] `LearnerProfileScreen` et édition.
-- [ ] `TeacherSearchScreen`.
-- [ ] `TeacherDetailScreen`.
-- [ ] `TeacherComparisonScreen`.
-- [ ] `CreateRequestScreen` fonctionnel.
-- [ ] `LearningRequestsScreen`.
-- [ ] `LearningRequestDetailScreen`.
-- [ ] `MatchesScreen`.
-- [ ] `ProposalsScreen` et détail.
-- [ ] `BookingCreateScreen`.
-- [ ] `LearnerBookingsScreen` et détail.
-- [ ] `LearnerPaymentScreen`.
-- [ ] `PaymentHistoryScreen` et reçu.
-- [ ] `LearnerSessionsScreen`.
-- [ ] `LearnerMessagingScreen` et conversation.
-- [ ] `LearnerNotificationsScreen`.
-- [ ] `CreateReviewScreen`.
-- [ ] `RepeatBookingScreen` ou action de réachat.
+- [x] `LearnerDashboardScreen`.
+- [x] `LearnerProfileScreen` et édition.
+- [x] `TeacherSearchScreen`.
+- [x] `TeacherDetailScreen`.
+- [x] `TeacherComparisonScreen`.
+- [x] `CreateRequestScreen` fonctionnel.
+- [x] `LearningRequestsScreen`.
+- [x] `LearningRequestDetailScreen`.
+- [x] `MatchesScreen`.
+- [x] `ProposalsScreen` et détail.
+- [x] `BookingCreateScreen`.
+- [x] `LearnerBookingsScreen` et détail.
+- [x] `LearnerPaymentScreen`.
+- [x] `PaymentHistoryScreen` et reçu.
+- [x] `LearnerSessionsScreen`.
+- [x] `LearnerMessagingScreen` et conversation.
+- [x] `LearnerNotificationsScreen`.
+- [x] `CreateReviewScreen`.
+- [x] `RepeatBookingScreen` ou action de réachat.
 
 ## Étape 11.3 - Écrans Formateur
 
-- [ ] Dashboard.
-- [ ] Profil et édition.
-- [ ] Offre pédagogique et tarification.
-- [ ] Disponibilités.
-- [ ] Vérification et certifications.
-- [ ] Demandes compatibles.
-- [ ] Création et suivi proposition.
-- [ ] Réservations et sessions.
-- [ ] Messagerie.
-- [ ] Notifications.
-- [ ] Revenus, transactions et versements.
-- [ ] Avis, réputation et réponse.
-- [ ] Paramètres.
+- [x] Dashboard.
+- [x] Profil et édition.
+- [x] Offre pédagogique et tarification.
+- [x] Disponibilités.
+- [x] Vérification et certifications.
+- [x] Demandes compatibles.
+- [x] Création et suivi proposition.
+- [x] Réservations et sessions.
+- [x] Messagerie.
+- [x] Notifications.
+- [x] Revenus, transactions et versements.
+- [x] Avis, réputation et réponse.
+- [x] Paramètres.
 
 ## Étape 11.4 - Navigation et guards
 
-- [ ] Routes publiques accessibles sans session.
-- [ ] Routes Apprenant protégées par session et rôle.
-- [ ] Routes Formateur protégées par session, rôle, email vérifié et profil si nécessaire.
-- [ ] Routes internes non exposées dans le client public ou protégées strictement.
-- [ ] Redirections après login, logout, expiration et changement de rôle.
-- [ ] Deep links vers demande, proposition, réservation, paiement et notification.
+- [x] Routes publiques accessibles sans session.
+- [x] Routes Apprenant protégées par session et rôle.
+- [x] Routes Formateur protégées par session, rôle, email vérifié et profil si nécessaire.
+- [x] Routes internes non exposées dans le client public ou protégées strictement.
+- [x] Redirections après login, logout, expiration et changement de rôle.
+- [x] Deep links vers demande, proposition, réservation, paiement et notification.
 
 ---
 
@@ -616,46 +616,46 @@ Objectif : disposer d'une première version livrable, testée et exploitable par
 
 ## Étape 12.1 - Scénario Apprenant complet
 
-- [ ] Créer un compte Apprenant.
-- [ ] Vérifier email.
-- [ ] Compléter le profil.
-- [ ] Rechercher des Formateurs.
-- [ ] Créer une demande.
-- [ ] Vérifier matches et raisons.
-- [ ] Consulter au moins deux profils.
-- [ ] Recevoir plusieurs propositions.
-- [ ] Accepter une seule proposition.
-- [ ] Créer une réservation sans conflit.
-- [ ] Faire un paiement sandbox.
-- [ ] Recevoir confirmation et reçu.
-- [ ] Réaliser une session.
-- [ ] Publier un avis.
-- [ ] Réserver à nouveau avec le même Formateur.
+- [x] Créer un compte Apprenant.
+- [x] Vérifier email.
+- [x] Compléter le profil.
+- [x] Rechercher des Formateurs.
+- [x] Créer une demande.
+- [x] Vérifier matches et raisons.
+- [x] Consulter au moins deux profils.
+- [x] Recevoir plusieurs propositions.
+- [x] Accepter une seule proposition.
+- [x] Créer une réservation sans conflit.
+- [x] Faire un paiement sandbox.
+- [x] Recevoir confirmation et reçu.
+- [x] Réaliser une session.
+- [x] Publier un avis.
+- [x] Réserver à nouveau avec le même Formateur.
 
 ## Étape 12.2 - Scénario Formateur complet
 
-- [ ] Créer un compte Formateur.
-- [ ] Vérifier email.
-- [ ] Compléter et publier le profil.
-- [ ] Déclarer disponibilités et documents.
-- [ ] Recevoir une demande compatible.
-- [ ] Envoyer une proposition.
-- [ ] Échanger avec l'Apprenant.
-- [ ] Confirmer une réservation.
-- [ ] Marquer présence et terminer session.
-- [ ] Consulter revenu et avis.
-- [ ] Répondre à un avis si autorisé.
+- [x] Créer un compte Formateur.
+- [x] Vérifier email.
+- [x] Compléter et publier le profil.
+- [x] Déclarer disponibilités et documents.
+- [x] Recevoir une demande compatible.
+- [x] Envoyer une proposition.
+- [x] Échanger avec l'Apprenant.
+- [x] Confirmer une réservation.
+- [x] Marquer présence et terminer session.
+- [x] Consulter revenu et avis.
+- [x] Répondre à un avis si autorisé.
 
 ## Étape 12.3 - Scénario Admin complet
 
-- [ ] Se connecter avec MFA.
-- [ ] Traiter un document Formateur.
-- [ ] Traiter un signalement.
-- [ ] Consulter un litige financier.
-- [ ] Vérifier une écriture de ledger.
+- [x] Se connecter avec MFA.
+- [x] Traiter un document Formateur.
+- [x] Traiter un signalement.
+- [x] Consulter un litige financier.
+- [x] Vérifier une écriture de ledger.
 - [ ] Modifier un référentiel sans casser les objets existants.
-- [ ] Consulter les KPI.
-- [ ] Vérifier les journaux d'audit.
+- [x] Consulter les KPI.
+- [x] Vérifier les journaux d'audit.
 
 ## Étape 12.4 - Tests négatifs obligatoires
 

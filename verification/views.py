@@ -1,11 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
-from django.http import FileResponse
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.views.generic import CreateView, ListView, View
 
+from accounts.roles import has_internal_role
 from accounts.services import record_audit
 from notifications.models import Notification
 
@@ -20,10 +21,7 @@ from .models import (
 
 class VerificationRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
-        if not (
-            request.user.is_superuser
-            or request.user.groups.filter(name="VERIFICATION").exists()
-        ):
+        if not has_internal_role(request.user, "VERIFICATION"):
             raise PermissionDenied("Accès réservé à la vérification.")
         return super().dispatch(request, *args, **kwargs)
 
@@ -118,9 +116,16 @@ class PrivateDocumentView(LoginRequiredMixin, View):
         if model is None:
             raise PermissionDenied
         document = get_object_or_404(model.objects.select_related("user"), pk=pk)
-        can_review = request.user.groups.filter(name="VERIFICATION").exists()
+        if not request.user.is_active or request.user.status != "ACTIVE":
+            raise PermissionDenied
+        if document.status == VerificationStatus.EXPIRED:
+            raise Http404
+        can_review = has_internal_role(request.user, "VERIFICATION")
         if document.user_id != request.user.pk and not can_review and not request.user.is_superuser:
             raise PermissionDenied
         if document.user_id != request.user.pk:
             record_audit(actor=request.user, action="verification.document_view", target=document)
-        return FileResponse(document.document.open("rb"), as_attachment=True)
+        response = FileResponse(document.document.open("rb"), as_attachment=True)
+        response["Cache-Control"] = "private, no-store"
+        response["X-Content-Type-Options"] = "nosniff"
+        return response

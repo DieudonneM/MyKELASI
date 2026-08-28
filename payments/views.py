@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import DetailView, ListView
 
+from accounts.roles import has_internal_role
 from accounts.services import record_audit
 from bookings.models import Booking
 
@@ -74,9 +75,7 @@ class ReceiptDetailView(LoginRequiredMixin, DetailView):
 
 class FinanceRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated and not request.user.groups.filter(
-            name="FINANCE"
-        ).exists():
+        if not has_internal_role(request.user, "FINANCE"):
             raise PermissionDenied("Accès réservé au personnel finance.")
         return super().dispatch(request, *args, **kwargs)
 

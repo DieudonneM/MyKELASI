@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -9,6 +11,11 @@ from accounts.models import AuditLog
 from notifications.models import Notification
 from verification.models import IdentityVerification, VerificationDecision, VerificationStatus
 from verification.validators import validate_document
+
+
+@pytest.fixture(autouse=True)
+def private_media_root(settings, tmp_path):
+    settings.PRIVATE_MEDIA_ROOT = tmp_path / "private-media"
 
 
 @pytest.mark.django_db
@@ -40,7 +47,66 @@ def test_document_is_private_to_owner(client, settings, tmp_path):
     client.force_login(owner)
     response = client.get(url)
     assert response.status_code == 200
+    assert response["Cache-Control"] == "private, no-store"
+    assert response["X-Content-Type-Options"] == "nosniff"
     response.close()
+
+    assert verification.document.storage.location == str(settings.PRIVATE_MEDIA_ROOT)
+    assert verification.document.storage.location != str(settings.MEDIA_ROOT)
+    assert client.get(f"/media/{verification.document.name}").status_code == 404
+
+
+@pytest.mark.django_db
+def test_private_document_access_is_revoked_after_expiration_suspension_and_deletion(client):
+    user_model = get_user_model()
+    owner = user_model.objects.create_user(email="lifecycle@example.com", account_type="TEACHER")
+    document = IdentityVerification.objects.create(
+        user=owner,
+        document_type="PASSPORT",
+        document=SimpleUploadedFile(
+            "passport.pdf", b"%PDF-1.4 test", content_type="application/pdf"
+        ),
+    )
+    url = reverse("verification:private-document", args=("identity", document.pk))
+    client.force_login(owner)
+
+    document.status = VerificationStatus.EXPIRED
+    document.save(update_fields=("status",))
+    assert client.get(url).status_code == 404
+
+    document.status = VerificationStatus.PENDING
+    document.save(update_fields=("status",))
+    owner.status = user_model.Status.SUSPENDED
+    owner.save(update_fields=("status",))
+    assert client.get(url).status_code == 403
+
+    owner.status = user_model.Status.ACTIVE
+    owner.save(update_fields=("status",))
+    document.delete()
+    assert client.get(url).status_code == 404
+
+
+@pytest.mark.django_db
+def test_account_deactivation_purges_private_documents(client):
+    user_model = get_user_model()
+    owner = user_model.objects.create_user(email="deactivate@example.com", account_type="TEACHER")
+    document = IdentityVerification.objects.create(
+        user=owner,
+        document_type="PASSPORT",
+        document=SimpleUploadedFile(
+            "passport.pdf", b"%PDF-1.4 test", content_type="application/pdf"
+        ),
+    )
+    document_path = document.document.path
+    client.force_login(owner)
+
+    response = client.post(reverse("accounts:deactivate"))
+
+    owner.refresh_from_db()
+    assert response.status_code == 302
+    assert owner.status == user_model.Status.DEACTIVATED
+    assert not IdentityVerification.objects.filter(pk=document.pk).exists()
+    assert not Path(document_path).exists()
 
 
 @pytest.mark.django_db
@@ -88,7 +154,9 @@ def test_verification_queue_review_is_notifiable_and_immutable(settings, tmp_pat
     document = IdentityVerification.objects.create(
         user=owner,
         document_type="PASSPORT",
-        document=SimpleUploadedFile("passport.pdf", b"%PDF-1.4 test", content_type="application/pdf"),
+        document=SimpleUploadedFile(
+            "passport.pdf", b"%PDF-1.4 test", content_type="application/pdf"
+        ),
     )
     client = APIClient()
     client.force_authenticate(reviewer)
@@ -133,9 +201,12 @@ def test_teacher_can_upload_and_list_private_verification_document(settings, tmp
     assert response.status_code == 201, response.data
     assert response.data["status"] == "pending"
     assert response.data["file_name"].endswith(".pdf")
+    assert "document" not in response.data
+    assert "/media/" not in str(response.data)
     listing = client.get("/api/v1/teacher/verifications/")
     assert listing.status_code == 200
     assert len(listing.data["results"]) == 1
+    assert "document" not in listing.data["results"][0]
 
 
 @pytest.mark.django_db

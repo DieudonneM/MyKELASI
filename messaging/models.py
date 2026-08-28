@@ -192,8 +192,7 @@ class Report(models.Model):
                 name="report_has_single_target",
             ),
             models.CheckConstraint(
-                condition=models.Q(message__isnull=True)
-                | models.Q(conversation__isnull=False),
+                condition=models.Q(message__isnull=True) | models.Q(conversation__isnull=False),
                 name="report_message_requires_conversation",
             ),
         ]

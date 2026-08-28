@@ -8,12 +8,8 @@ from .models import LearningRequest, MatchResult, Proposal
 
 
 class LearningRequestSerializer(serializers.ModelSerializer):
-    subject = serializers.PrimaryKeyRelatedField(
-        queryset=Subject.objects.filter(is_active=True)
-    )
-    level = serializers.PrimaryKeyRelatedField(
-        queryset=Level.objects.filter(is_active=True)
-    )
+    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.filter(is_active=True))
+    level = serializers.PrimaryKeyRelatedField(queryset=Level.objects.filter(is_active=True))
     teaching_mode = serializers.PrimaryKeyRelatedField(
         queryset=TeachingMode.objects.filter(is_active=True)
     )
@@ -22,6 +18,7 @@ class LearningRequestSerializer(serializers.ModelSerializer):
         allow_null=True,
         required=False,
     )
+
     def validate(self, attrs):
         preferred_date = attrs.get(
             "preferred_date",
@@ -34,8 +31,12 @@ class LearningRequestSerializer(serializers.ModelSerializer):
         if bool(preferred_date) != bool(preferred_start_time):
             raise serializers.ValidationError(
                 {
-                    "preferred_date": "La date et l'heure souhaitées doivent être renseignées ensemble.",
-                    "preferred_start_time": "La date et l'heure souhaitées doivent être renseignées ensemble.",
+                    "preferred_date": (
+                        "La date et l'heure souhaitées doivent être renseignées ensemble."
+                    ),
+                    "preferred_start_time": (
+                        "La date et l'heure souhaitées doivent être renseignées ensemble."
+                    ),
                 }
             )
         if preferred_date and preferred_date < timezone.localdate():
@@ -89,9 +90,19 @@ class MatchResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = MatchResult
         fields = (
-            "teacher_id", "teacher_name", "teacher_url", "score", "reasons",
-            "teacher_rate", "teacher_currency", "teacher_subjects", "teacher_levels",
-            "teacher_modes", "teacher_areas", "has_availability", "verification",
+            "teacher_id",
+            "teacher_name",
+            "teacher_url",
+            "score",
+            "reasons",
+            "teacher_rate",
+            "teacher_currency",
+            "teacher_subjects",
+            "teacher_levels",
+            "teacher_modes",
+            "teacher_areas",
+            "has_availability",
+            "verification",
         )
 
     def get_has_availability(self, match):
@@ -122,9 +133,7 @@ class MatchResultSerializer(serializers.ModelSerializer):
 class ProposalSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     request_id = serializers.IntegerField(source="learning_request_id", read_only=True)
-    amount = serializers.DecimalField(
-        max_digits=12, decimal_places=2, required=False
-    )
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2, required=False)
     teacher_name = serializers.CharField(source="teacher.user.get_full_name", read_only=True)
     hourly_rate = serializers.DecimalField(
         source="amount", max_digits=12, decimal_places=2, write_only=True, required=False
@@ -144,8 +153,16 @@ class ProposalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proposal
         fields = (
-            "id", "request_id", "public_id", "teacher_name", "amount", "hourly_rate", "message",
-            "availability", "status", "created_at",
+            "id",
+            "request_id",
+            "public_id",
+            "teacher_name",
+            "amount",
+            "hourly_rate",
+            "message",
+            "availability",
+            "status",
+            "created_at",
         )
         read_only_fields = ("public_id", "teacher_name", "status", "created_at")
 
@@ -170,12 +187,25 @@ class TeacherMatchedRequestSerializer(serializers.ModelSerializer):
     def get_match_reasons(self, obj):
         match = obj.matches.filter(teacher__user=self.context["request"].user).first()
         return (
-            [{"code": f"reason_{index}", "label": reason} for index, reason in enumerate(match.reasons)]
+            [
+                {"code": f"reason_{index}", "label": reason}
+                for index, reason in enumerate(match.reasons)
+            ]
             if match
             else []
         )
 
     class Meta:
         model = LearningRequest
-        fields = ("id", "subject", "level", "teaching_mode", "student", "budget", "status", "timezone", "match_reasons")
+        fields = (
+            "id",
+            "subject",
+            "level",
+            "teaching_mode",
+            "student",
+            "budget",
+            "status",
+            "timezone",
+            "match_reasons",
+        )
         read_only_fields = fields

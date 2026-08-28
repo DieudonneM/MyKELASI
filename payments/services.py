@@ -7,9 +7,11 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
+from accounts.roles import has_internal_role
 from accounts.services import record_audit
 from bookings.models import Booking
 from learning.models import LearningEvent
+from profiles.services import payment_commission_rate
 
 from .models import FinanceAction, LedgerEntry, Payment, PaymentWebhook, Payout, Refund
 from .providers import get_payment_provider
@@ -45,7 +47,7 @@ def create_payment(*, booking, payer, idempotency_key):
             currency=booking.currency,
             provider=provider.code,
             idempotency_key=idempotency_key,
-            commission_rate=settings.PAYMENT_COMMISSION_RATE,
+            commission_rate=payment_commission_rate(),
         )
     except IntegrityError:
         return Payment.objects.get(
@@ -62,6 +64,18 @@ def create_payment(*, booking, payer, idempotency_key):
     return payment, True
 
 
+@transaction.atomic
+def cancel_payment(*, payment, payer):
+    payment = Payment.objects.select_for_update().get(pk=payment.pk)
+    if payment.payer_id != payer.pk:
+        raise PermissionDenied("Seul l'apprenant peut annuler ce paiement.")
+    if payment.status != Payment.Status.PENDING:
+        raise ValidationError("Seul un paiement en attente peut être annulé.")
+    payment.status = Payment.Status.CANCELLED
+    payment.save(update_fields=("status", "updated_at"))
+    return payment
+
+
 def _validated_webhook_payment(payload):
     required_fields = (
         "event_id",
@@ -75,13 +89,15 @@ def _validated_webhook_payment(payload):
         raise ValidationError("Payload de paiement incomplet.")
     try:
         amount = Decimal(str(payload["amount"]))
-    except (InvalidOperation, TypeError):
+    except InvalidOperation, TypeError:
         raise ValidationError("Montant de paiement invalide.") from None
     try:
-        payment = Payment.objects.select_for_update().select_related(
-            "booking__proposal__learning_request"
-        ).get(reference=payload["reference"])
-    except (Payment.DoesNotExist, ValueError):
+        payment = (
+            Payment.objects.select_for_update()
+            .select_related("booking__proposal__learning_request")
+            .get(reference=payload["reference"])
+        )
+    except Payment.DoesNotExist, ValueError:
         raise ValidationError("Référence de paiement inconnue.") from None
     if amount != payment.amount or payload["currency"] != payment.currency:
         raise ValidationError("Montant ou devise du paiement invalide.")
@@ -119,7 +135,7 @@ def _post_success_ledger(payment):
 
 
 def _require_finance(actor):
-    if not actor.groups.filter(name="FINANCE").exists():
+    if not has_internal_role(actor, "FINANCE"):
         raise PermissionDenied("Action réservée au personnel finance.")
 
 
@@ -146,9 +162,11 @@ def _post_entries(payment, entries):
 @transaction.atomic
 def process_payment_webhook(*, payload, raw_payload):
     payload_hash = sha256(raw_payload).hexdigest()
-    existing = PaymentWebhook.objects.select_related("payment").filter(
-        event_id=payload.get("event_id", "")
-    ).first()
+    existing = (
+        PaymentWebhook.objects.select_related("payment")
+        .filter(event_id=payload.get("event_id", ""))
+        .first()
+    )
     if existing:
         if existing.payload_hash != payload_hash:
             raise ValidationError("Identifiant webhook réutilisé avec un autre contenu.")
@@ -263,8 +281,8 @@ def refund_payment(*, payment, actor, reason):
 @transaction.atomic
 def create_payout(*, payment, actor, note=""):
     _require_finance(actor)
-    payment = Payment.objects.select_for_update().select_related("booking__teacher").get(
-        pk=payment.pk
+    payment = (
+        Payment.objects.select_for_update().select_related("booking__teacher").get(pk=payment.pk)
     )
     if payment.status != Payment.Status.SUCCESS:
         raise ValidationError("Le versement exige un paiement réussi.")
@@ -315,9 +333,7 @@ def reconcile_payment(*, payment, actor, matched, note=""):
     _require_finance(actor)
     payment = Payment.objects.select_for_update().get(pk=payment.pk)
     payment.reconciliation_status = (
-        Payment.ReconciliationStatus.MATCHED
-        if matched
-        else Payment.ReconciliationStatus.MISMATCH
+        Payment.ReconciliationStatus.MATCHED if matched else Payment.ReconciliationStatus.MISMATCH
     )
     payment.reconciled_by = actor
     payment.reconciled_at = timezone.now()

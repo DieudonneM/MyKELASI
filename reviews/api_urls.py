@@ -11,7 +11,9 @@ from .api_views import (
 app_name = "reviews-api"
 
 urlpatterns = [
-    path("teachers/<uuid:teacher_id>/reviews/", PublicTeacherReviewListAPIView.as_view(), name="list"),
+    path(
+        "teachers/<uuid:teacher_id>/reviews/", PublicTeacherReviewListAPIView.as_view(), name="list"
+    ),
     path("bookings/<uuid:booking_id>/reviews/", ReviewCreateAPIView.as_view(), name="create"),
     path("teacher/reviews/", TeacherReviewListAPIView.as_view(), name="teacher-list"),
     path("teacher/reputation/", TeacherReputationAPIView.as_view(), name="teacher-reputation"),

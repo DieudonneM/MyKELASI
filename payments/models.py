@@ -13,6 +13,7 @@ class Payment(models.Model):
         PENDING = "PENDING", "En attente"
         SUCCESS = "SUCCESS", "Réussi"
         FAILED = "FAILED", "Échoué"
+        CANCELLED = "CANCELLED", "Annulé"
         REFUNDED = "REFUNDED", "Remboursé"
         DISPUTED = "DISPUTED", "Contesté"
 

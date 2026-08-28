@@ -34,5 +34,6 @@ class ConfigurationVersionAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+
 for model in PROFILE_MODELS:
     admin.site.register(model)

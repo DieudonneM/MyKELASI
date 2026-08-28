@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from accounts.models import User
+from accounts.roles import has_internal_role
 from accounts.services import record_audit
 from bookings.models import Booking
 from learning.models import Proposal
@@ -34,10 +35,8 @@ def conversations_for_user(user):
     if not user.is_authenticated:
         return Conversation.objects.none()
     participant_filter = Q(learner=user) | Q(teacher=user)
-    if user.groups.filter(name="MODERATION").exists():
-        moderated_filter = Q(
-            reports__status__in=(Report.Status.OPEN, Report.Status.IN_REVIEW)
-        )
+    if has_internal_role(user, "MODERATION"):
+        moderated_filter = Q(reports__status__in=(Report.Status.OPEN, Report.Status.IN_REVIEW))
         return Conversation.objects.filter(participant_filter | moderated_filter).distinct()
     return Conversation.objects.filter(participant_filter)
 
@@ -180,7 +179,7 @@ def record_moderator_view(*, conversation, moderator):
 
 @transaction.atomic
 def transition_report(*, report, moderator, action, note=""):
-    if not moderator.groups.filter(name="MODERATION").exists():
+    if not has_internal_role(moderator, "MODERATION"):
         raise PermissionDenied("Action réservée à la modération.")
     report = Report.objects.select_for_update().get(pk=report.pk)
     transitions = {
@@ -252,6 +251,8 @@ def _report_target_user(report):
 def mark_messages_read(*, conversation, reader):
     if reader.pk not in (conversation.learner_id, conversation.teacher_id):
         return 0
-    return conversation.messages.exclude(author=reader).filter(read_at__isnull=True).update(
-        read_at=timezone.now()
+    return (
+        conversation.messages.exclude(author=reader)
+        .filter(read_at__isnull=True)
+        .update(read_at=timezone.now())
     )

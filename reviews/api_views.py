@@ -68,7 +68,9 @@ class TeacherReviewListAPIView(generics.ListAPIView):
     def get_queryset(self):
         if self.request.user.account_type != "TEACHER":
             return Review.objects.none()
-        return Review.objects.filter(subject=self.request.user).select_related("reviewer", "response")
+        return Review.objects.filter(subject=self.request.user).select_related(
+            "reviewer", "response"
+        )
 
 
 class TeacherReputationAPIView(generics.RetrieveAPIView):
@@ -81,13 +83,15 @@ class TeacherReputationAPIView(generics.RetrieveAPIView):
         if snapshot is None:
             return Response({"overall": 0, "clarity": 0, "pace": 0, "engagement": 0})
         components = snapshot.components
-        return Response({
-            "overall": snapshot.score,
-            "clarity": components.get("reviews", 0),
-            "pace": components.get("delivery", 0),
-            "engagement": components.get("attendance", 0),
-            "components": components,
-        })
+        return Response(
+            {
+                "overall": snapshot.score,
+                "clarity": components.get("reviews", 0),
+                "pace": components.get("delivery", 0),
+                "engagement": components.get("attendance", 0),
+                "components": components,
+            }
+        )
 
 
 class ReviewReplyCreateAPIView(generics.GenericAPIView):
@@ -108,4 +112,6 @@ class ReviewReplyCreateAPIView(generics.GenericAPIView):
             raise PermissionDenied(str(error)) from None
         except DjangoValidationError as error:
             raise ValidationError(error.messages) from None
-        return Response({"id": reply.pk, "message": reply.content, "created_at": reply.created_at}, status=201)
+        return Response(
+            {"id": reply.pk, "message": reply.content, "created_at": reply.created_at}, status=201
+        )
