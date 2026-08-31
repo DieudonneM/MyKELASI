@@ -1,8 +1,10 @@
+import uuid
 from datetime import timedelta
 
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.urls import reverse
 from django.utils import timezone
@@ -15,6 +17,7 @@ from messaging.services import (
     conversations_for_user,
     create_conversation,
     create_report,
+    grant_temporary_conversation_access,
     record_moderator_view,
     send_message,
     transition_report,
@@ -88,6 +91,8 @@ def test_conversation_access_requires_participation_or_open_report(conversation_
         description="À examiner.",
     )
 
+    assert not conversations_for_user(moderator).exists()
+    grant_temporary_conversation_access(report=report, moderator=moderator, minutes=15)
     assert conversations_for_user(moderator).get() == conversation
     record_moderator_view(conversation=conversation, moderator=moderator)
     assert ReportAction.objects.filter(
@@ -144,6 +149,7 @@ def test_api_does_not_expose_phone_and_rejects_outsider(conversation_data):
 
 @pytest.mark.django_db
 def test_api_report_grants_audited_moderator_read_access(conversation_data):
+    cache.clear()
     learner, teacher, _, moderator, _, conversation = conversation_data
     message = send_message(conversation=conversation, author=teacher, content="À signaler")
     client = APIClient()
@@ -161,6 +167,19 @@ def test_api_report_grants_audited_moderator_read_access(conversation_data):
     assert report_response.status_code == 201
 
     client.force_authenticate(moderator)
+    assert (
+        client.get(reverse("messaging-api:messages", args=(conversation.public_id,))).status_code
+        == 404
+    )
+    access_response = client.post(
+        reverse(
+            "messaging-api:internal-report-conversation-access",
+            args=(report_response.data["public_id"],),
+        ),
+        {"minutes": 15},
+        format="json",
+    )
+    assert access_response.status_code == 200
     read_response = client.get(reverse("messaging-api:messages", args=(conversation.public_id,)))
     assert read_response.status_code == 200
     assert ReportAction.objects.filter(
@@ -293,3 +312,36 @@ def test_external_report_targets_enforce_target_permissions(client, conversation
     assert booking_response.status_code == 302
     assert Report.objects.filter(reporter=learner, proposal=proposal).exists()
     assert Report.objects.filter(reporter=learner, booking=booking).exists()
+
+
+@pytest.mark.django_db
+def test_message_api_rejects_empty_oversized_and_prohibited_content(conversation_data):
+    learner, _, _, _, _, conversation = conversation_data
+    client = APIClient()
+    client.force_authenticate(learner)
+    endpoint = reverse("messaging-api:messages", args=(conversation.public_id,))
+
+    for content in ("   ", "x" * 4001, "Fais mon examen a ma place."):
+        response = client.post(endpoint, {"content": content}, format="json")
+        assert response.status_code == 400
+    assert not conversation.messages.exists()
+
+
+@pytest.mark.django_db
+def test_report_api_rejects_duplicates_and_unknown_targets(conversation_data):
+    learner, teacher, _, _, _, conversation = conversation_data
+    message = send_message(conversation=conversation, author=teacher, content="Message a signaler.")
+    client = APIClient()
+    client.force_authenticate(learner)
+    endpoint = reverse("messaging-api:reports", args=(conversation.public_id,))
+    payload = {"message_id": str(message.public_id), "reason": Report.Reason.SPAM}
+
+    assert client.post(endpoint, payload, format="json").status_code == 201
+    assert client.post(endpoint, payload, format="json").status_code == 400
+    assert (
+        client.post(
+            reverse("messaging-api:reports", args=(uuid.uuid4(),)), payload, format="json"
+        ).status_code
+        == 404
+    )
+    assert Report.objects.filter(conversation=conversation, reporter=learner).count() == 1

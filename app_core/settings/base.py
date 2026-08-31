@@ -149,6 +149,19 @@ REST_FRAMEWORK = {
 REST_FRAMEWORK["PAGE_SIZE"] = 12
 REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"] = "rest_framework.pagination.PageNumberPagination"
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {"sensitive_data": {"()": "accounts.logging.SensitiveDataFilter"}},
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "filters": ["sensitive_data"],
+        }
+    },
+    "root": {"handlers": ["console"], "level": "INFO"},
+}
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),

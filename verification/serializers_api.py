@@ -2,7 +2,12 @@ from pathlib import Path
 
 from rest_framework import serializers
 
-from .models import IdentityVerification, ProfessionalCredential, VerificationStatus
+from .models import (
+    IdentityVerification,
+    ProfessionalCredential,
+    VerificationDecision,
+    VerificationStatus,
+)
 from .validators import validate_document
 
 
@@ -79,17 +84,24 @@ class VerificationReviewSerializer(serializers.Serializer):
             (VerificationStatus.EXPIRED, "Expiré"),
         )
     )
-    rejection_reason = serializers.CharField(required=False, allow_blank=True, max_length=2000)
+    rejection_reason = serializers.CharField(required=True, allow_blank=False, max_length=2000)
 
     def validate(self, attrs):
-        if (
-            attrs["status"] == VerificationStatus.REJECTED
-            and not attrs.get("rejection_reason", "").strip()
-        ):
-            raise serializers.ValidationError(
-                {"rejection_reason": "Le motif est obligatoire pour un rejet."}
-            )
+        if not attrs["rejection_reason"].strip():
+            raise serializers.ValidationError({"rejection_reason": "Le motif est obligatoire."})
         return attrs
+
+
+class VerificationDecisionSerializer(serializers.ModelSerializer):
+    reviewer_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = VerificationDecision
+        fields = ("from_status", "to_status", "reason", "created_at", "reviewer_name")
+        read_only_fields = fields
+
+    def get_reviewer_name(self, obj):
+        return obj.reviewer.get_full_name() or obj.reviewer.email
 
 
 class VerificationDocumentModelSerializer(VerificationDocumentSerializer):

@@ -63,6 +63,20 @@ def reject_proposal(*, proposal_id, learner):
     return proposal
 
 
+@transaction.atomic
+def withdraw_proposal(*, proposal_id, teacher):
+    proposal = Proposal.objects.select_for_update().get(public_id=proposal_id)
+    if proposal.teacher.user_id != teacher.pk:
+        raise PermissionError("Cette proposition ne vous appartient pas.")
+    if proposal.status == Proposal.Status.WITHDRAWN:
+        return proposal
+    if proposal.status != Proposal.Status.SENT:
+        raise ValueError("Cette proposition ne peut plus être retirée.")
+    proposal.status = Proposal.Status.WITHDRAWN
+    proposal.save(update_fields=("status", "updated_at"))
+    return proposal
+
+
 def _notify_proposal_participants(proposal, status):
     from notifications.models import Notification
 

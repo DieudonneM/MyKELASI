@@ -130,11 +130,11 @@ Pour chaque écran : repository, DTO, controller/provider, appel API, états com
 
 ## 3.4 Configuration Mobile
 
-- [ ] Documenter `API_BASE_URL` pour Android, iOS et Web.
-- [ ] Documenter les valeurs development, staging et production.
-- [ ] Vérifier l'absence de secrets dans `--dart-define` et le dépôt.
-- [ ] Valider la configuration au démarrage.
-- [ ] Produire des builds reproductibles des trois cibles.
+- [x] Documenter `API_BASE_URL` pour Android, iOS et Web.
+- [x] Documenter les valeurs development, staging et production.
+- [x] Vérifier l'absence de secrets dans `--dart-define` et le dépôt.
+- [x] Valider la configuration au démarrage.
+- [x] Produire des builds reproductibles des trois cibles.
 
 **Preuve phase 3 :** tests repository/controller/widget, tests de routing et recette mobile.
 
@@ -144,17 +144,17 @@ Pour chaque écran : repository, DTO, controller/provider, appel API, états com
 
 ## 4.1 Socle Admin
 
-- [ ] Ajouter client API, repositories et controllers Admin.
-- [ ] Couvrir chargement, rafraîchissement, vide, erreur et reprise.
-- [ ] Gérer 401, 403, 404 et 409.
-- [ ] Tester les rôles internes côté Flutter et API.
+- [x] Ajouter client API, repositories et controllers Admin.
+- [x] Couvrir chargement, rafraîchissement, vide, erreur et reprise.
+- [x] Gérer 401, 403, 404 et 409.
+- [x] Tester les rôles internes côté Flutter et API.
 
 ## 4.2 Vérification
 
-- [ ] Remplacer la liste statique par les documents pending réels.
-- [ ] Ajouter consultation sécurisée et auditée.
-- [ ] Ajouter approuver, rejeter et expirer avec motif.
-- [ ] Ajouter nouveau dépôt après rejet/expiration et historique des décisions.
+- [x] Remplacer la liste statique par les documents pending réels.
+- [x] Ajouter consultation sécurisée et auditée.
+- [x] Ajouter approuver, rejeter et expirer avec motif.
+- [x] Ajouter nouveau dépôt après rejet/expiration et historique des décisions.
 
 ## 4.3 Modération et support
 
@@ -181,36 +181,44 @@ Pour chaque écran : repository, DTO, controller/provider, appel API, états com
 
 ## 5.1 Parcours complets
 
-- [ ] Automatiser le parcours Apprenant : inscription, email, profil, recherche, demande, match, proposition, réservation, paiement, session, avis et réachat.
-- [ ] Automatiser le parcours Formateur : inscription, email, profil, vérification, publication, match, proposition, réservation, session, revenus et avis.
-- [ ] Automatiser le parcours Admin : MFA, vérification, modération, finance, référentiel, analytics et audit.
-- [ ] Exécuter ces parcours sur une base propre avec seed reproductible.
-- [ ] Archiver résultats, données de test et captures utiles.
+- [x] Automatiser le parcours Apprenant : inscription, email, profil, recherche, demande, match, proposition, réservation, paiement, session, avis et réachat.
+- [x] Automatiser le parcours Formateur : inscription, email, profil, vérification, publication, match, proposition, réservation, session, revenus et avis.
+- [x] Automatiser le parcours Admin : MFA, vérification, modération, finance, référentiel, analytics et audit.
+- [x] Exécuter ces parcours sur une base propre avec seed reproductible.
+- [x] Archiver résultats, données de test et captures utiles.
+
+**Preuve 5.1 :** [`app_core/tests/test_integrated_journeys.py`](app_core/tests/test_integrated_journeys.py) et [`docs/recette_phase_5_1.md`](docs/recette_phase_5_1.md), exécutés le 31 août 2026.
 
 ## 5.2 Authentification et permissions
 
-- [ ] Apprenant non vérifié sur action protégée.
-- [ ] Formateur sur action Apprenant.
-- [ ] Lecture/modification de l'objet d'un autre utilisateur.
-- [ ] Accès après suspension ou désactivation.
-- [ ] Équipe interne hors de son périmètre.
+- [x] Apprenant non vérifié sur action protégée.
+- [x] Formateur sur action Apprenant.
+- [x] Lecture/modification de l'objet d'un autre utilisateur.
+- [x] Accès après suspension ou désactivation.
+- [x] Équipe interne hors de son périmètre.
+
+**Preuve 5.2 :** [`app_core/tests/test_negative_journeys.py`](app_core/tests/test_negative_journeys.py) et [`docs/recette_phase_5_2.md`](docs/recette_phase_5_2.md), executes le 31 aout 2026.
 
 ## 5.3 Transactions
 
-- [ ] Proposition acceptée, refusée ou retirée réutilisée.
-- [ ] Double réservation concurrente du même créneau.
-- [ ] Double paiement avec même clé d'idempotence.
-- [ ] Webhook invalide, montant/devise falsifiés ou webhook rejoué.
-- [ ] Session terminée deux fois, fin avant début ou action hors délai.
-- [ ] Avis avant session terminée ou en doublon.
+- [x] Proposition acceptée, refusée ou retirée réutilisée.
+- [x] Double réservation concurrente du même créneau.
+- [x] Double paiement avec même clé d'idempotence.
+- [x] Webhook invalide, montant/devise falsifiés ou webhook rejoué.
+- [x] Session terminée deux fois, fin avant début ou action hors délai.
+- [x] Avis avant session terminée ou en doublon.
+
+**Preuve 5.3 :** [`learning/tests/test_matching.py`](learning/tests/test_matching.py), [`bookings/tests/test_bookings.py`](bookings/tests/test_bookings.py), [`payments/tests/test_payments.py`](payments/tests/test_payments.py), [`reviews/tests/test_reviews.py`](reviews/tests/test_reviews.py) et [`docs/recette_phase_5_3.md`](docs/recette_phase_5_3.md), executes le 31 aout 2026.
 
 ## 5.4 Fichiers et contenus
 
-- [ ] Upload trop grand, mauvais MIME, extension incohérente ou fichier corrompu.
-- [ ] Fichier uploadé inaccessible publiquement.
-- [ ] Message vide, trop long, spam ou contenu interdit.
-- [ ] Signalement abusif, doublonné ou objet inexistant.
-- [ ] Données sensibles absentes des réponses, URLs, caches et logs.
+- [x] Upload trop grand, mauvais MIME, extension incohérente ou fichier corrompu.
+- [x] Fichier uploadé inaccessible publiquement.
+- [x] Message vide, trop long, spam ou contenu interdit.
+- [x] Signalement abusif, doublonné ou objet inexistant.
+- [x] Données sensibles absentes des réponses, URLs, caches et logs.
+
+**Preuve 5.4 :** [`verification/tests/test_documents.py`](verification/tests/test_documents.py), [`messaging/tests/test_messaging.py`](messaging/tests/test_messaging.py), [`accounts/tests/test_logging.py`](accounts/tests/test_logging.py) et [`docs/recette_phase_5_4.md`](docs/recette_phase_5_4.md), executes le 31 aout 2026.
 
 **Preuve phase 5 :** tests automatisés, codes HTTP attendus et couverture des cas négatifs.
 

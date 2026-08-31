@@ -5,6 +5,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .mfa import confirm_device
 from .models import MfaDevice, User
+from .roles import INTERNAL_ROLE_NAMES
 from .services import send_verification_email
 from .tokens import read_email_verification_token
 
@@ -89,10 +90,30 @@ class EmailVerificationSerializer(serializers.Serializer):
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
+    internal_roles = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ("id", "email", "first_name", "last_name", "account_type", "email_verified")
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "account_type",
+            "email_verified",
+            "is_internal",
+            "internal_roles",
+        )
         read_only_fields = fields
+
+    def get_internal_roles(self, user):
+        if user.is_superuser:
+            return list(INTERNAL_ROLE_NAMES)
+        return list(
+            user.groups.filter(name__in=INTERNAL_ROLE_NAMES)
+            .order_by("name")
+            .values_list("name", flat=True)
+        )
 
 
 class MfaCodeSerializer(serializers.Serializer):

@@ -17,6 +17,7 @@ from .models import Conversation, Message, Report, ReportAction
 
 MESSAGE_LIMIT_PER_MINUTE = 30
 REPORT_LIMIT_PER_HOUR = 5
+PROHIBITED_MESSAGE_PHRASES = ("fais mon examen", "vends les reponses d'examen")
 
 
 def _enforce_quota(*, key, limit, timeout, error_message):
@@ -35,9 +36,9 @@ def conversations_for_user(user):
     if not user.is_authenticated:
         return Conversation.objects.none()
     participant_filter = Q(learner=user) | Q(teacher=user)
-    if has_internal_role(user, "MODERATION"):
-        moderated_filter = Q(reports__status__in=(Report.Status.OPEN, Report.Status.IN_REVIEW))
-        return Conversation.objects.filter(participant_filter | moderated_filter).distinct()
+    if has_internal_role(user, "MODERATION", "SUPER_ADMIN"):
+        granted_ids = cache.get(f"moderation-conversations:{user.pk}", [])
+        return Conversation.objects.filter(participant_filter | Q(pk__in=granted_ids)).distinct()
     return Conversation.objects.filter(participant_filter)
 
 
@@ -79,6 +80,8 @@ def send_message(*, conversation, author, content):
     content = content.strip()
     if not content:
         raise ValidationError("Le message ne peut pas être vide.")
+    if any(phrase in content.casefold() for phrase in PROHIBITED_MESSAGE_PHRASES):
+        raise ValidationError("Le contenu du message n'est pas autorisé.")
     message = Message.objects.create(
         conversation=conversation,
         author=author,
@@ -102,6 +105,16 @@ def create_report(*, conversation, reporter, reason, description="", message=Non
     )
     if message and message.conversation_id != conversation.pk:
         raise ValidationError("Ce message n'appartient pas à la conversation.")
+    duplicate_filter = (
+        Q(message=message) if message else Q(conversation=conversation, message__isnull=True)
+    )
+    if Report.objects.filter(
+        Q(status=Report.Status.OPEN) | Q(status=Report.Status.IN_REVIEW),
+        duplicate_filter,
+        reporter=reporter,
+        reason=reason,
+    ).exists():
+        raise ValidationError("Ce signalement est déjà ouvert.")
     return Report.objects.create(
         reporter=reporter,
         conversation=conversation,
@@ -164,17 +177,38 @@ def create_target_report(*, target_type, target, reporter, reason, description="
 
 
 def record_moderator_view(*, conversation, moderator):
-    if not moderator.groups.filter(name="MODERATION").exists():
+    if not has_internal_role(moderator, "MODERATION", "SUPER_ADMIN"):
         return
-    report = conversation.reports.filter(
-        status__in=(Report.Status.OPEN, Report.Status.IN_REVIEW)
-    ).first()
+    report = conversation.reports.first()
     if report:
         ReportAction.objects.create(
             report=report,
             actor=moderator,
             action=ReportAction.Action.VIEWED,
         )
+
+
+def grant_temporary_conversation_access(*, report, moderator, minutes):
+    if not has_internal_role(moderator, "MODERATION", "SUPER_ADMIN"):
+        raise PermissionDenied("Action réservée à la modération.")
+    if report.conversation_id is None:
+        raise ValidationError("Ce signalement ne concerne pas une conversation.")
+    key = f"moderation-conversations:{moderator.pk}"
+    granted_ids = set(cache.get(key, []))
+    granted_ids.add(report.conversation_id)
+    cache.set(key, list(granted_ids), timeout=minutes * 60)
+    ReportAction.objects.create(
+        report=report,
+        actor=moderator,
+        action=ReportAction.Action.VIEWED,
+        note=f"Accès temporaire accordé pour {minutes} minutes.",
+    )
+    record_audit(
+        actor=moderator,
+        action="moderation.conversation_access_granted",
+        target=report,
+        metadata={"conversation_id": report.conversation_id, "minutes": minutes},
+    )
 
 
 @transaction.atomic

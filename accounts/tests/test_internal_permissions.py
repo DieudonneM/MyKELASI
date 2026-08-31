@@ -121,3 +121,15 @@ def test_removing_internal_role_revokes_direct_api_access():
 @pytest.mark.django_db
 def test_all_internal_roles_exist():
     assert set(INTERNAL_ROLE_NAMES).issubset(set(Group.objects.values_list("name", flat=True)))
+
+
+@pytest.mark.django_db
+def test_current_user_exposes_only_effective_internal_roles():
+    client, user = role_client("SUPPORT")
+    user.groups.add(Group.objects.get(name="VERIFICATION"))
+
+    response = client.get("/api/v1/auth/me/")
+
+    assert response.status_code == 200
+    assert response.data["is_internal"] is True
+    assert response.data["internal_roles"] == ["SUPPORT", "VERIFICATION"]

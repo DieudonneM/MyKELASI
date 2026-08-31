@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
+from accounts.permissions import IsActiveVerifiedUser
 
 from .models import LearningEvent, LearningRequest, Proposal
 from .serializers import (
@@ -14,7 +15,7 @@ from .serializers import (
     ProposalSerializer,
     TeacherMatchedRequestSerializer,
 )
-from .services import accept_proposal, generate_matches, reject_proposal
+from .services import accept_proposal, generate_matches, reject_proposal, withdraw_proposal
 
 
 class IsTeacher(BasePermission):
@@ -26,6 +27,7 @@ class IsTeacher(BasePermission):
 
 class LearningRequestListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = LearningRequestSerializer
+    permission_classes = (IsActiveVerifiedUser,)
 
     def get_queryset(self):
         return LearningRequest.objects.filter(learner=self.request.user).select_related(
@@ -121,10 +123,17 @@ class ProposalActionAPIView(APIView):
             handler = accept_proposal
         elif action == "reject":
             handler = reject_proposal
+        elif action == "withdraw":
+            handler = withdraw_proposal
         else:
             raise ValidationError("Action de proposition inconnue.")
         try:
-            proposal = handler(proposal_id=proposal.public_id, learner=request.user)
+            actor = (
+                {"learner": request.user}
+                if action in ("accept", "reject")
+                else {"teacher": request.user}
+            )
+            proposal = handler(proposal_id=proposal.public_id, **actor)
         except PermissionError as error:
             raise PermissionDenied(str(error)) from None
         except ValueError as error:

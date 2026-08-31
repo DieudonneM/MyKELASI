@@ -228,6 +228,20 @@ def test_verification_upload_rejects_wrong_mime_and_non_teacher():
     assert response.status_code == 400
 
 
+def test_document_validator_rejects_large_incoherent_and_corrupted_files():
+    oversized = SimpleUploadedFile(
+        "passport.pdf",
+        b"%PDF-" + b"x" * (5 * 1024 * 1024),
+        content_type="application/pdf",
+    )
+    incoherent = SimpleUploadedFile("passport.pdf", b"%PDF-1.4", content_type="image/png")
+    corrupted = SimpleUploadedFile("passport.pdf", b"not a PDF", content_type="application/pdf")
+
+    for upload in (oversized, incoherent, corrupted):
+        with pytest.raises(ValidationError):
+            validate_document(upload)
+
+
 @pytest.mark.django_db
 def test_verification_reviewer_audits_rejection_reason(settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path
@@ -254,6 +268,122 @@ def test_verification_reviewer_audits_rejection_reason(settings, tmp_path):
     assert item.status == "REJECTED"
     assert item.reviewed_by_id == reviewer.pk
     assert item.reviewed_at is not None
+
+
+@pytest.mark.django_db
+def test_verification_review_requires_reason_and_cannot_be_replayed(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    user_model = get_user_model()
+    owner = user_model.objects.create_user(
+        email="transition-owner@example.com", account_type="TEACHER"
+    )
+    reviewer = user_model.objects.create_user(email="transition-reviewer@example.com")
+    reviewer.groups.add(reviewer.groups.model.objects.get(name="VERIFICATION"))
+    item = IdentityVerification.objects.create(
+        user=owner,
+        document_type="PASSPORT",
+        document=SimpleUploadedFile(
+            "passport.pdf", b"%PDF-1.4 test", content_type="application/pdf"
+        ),
+    )
+    client = APIClient()
+    client.force_authenticate(reviewer)
+    endpoint = f"/api/v1/verification/identity/{item.pk}/review/"
+
+    assert client.post(endpoint, {"status": "APPROVED"}, format="json").status_code == 400
+    assert (
+        client.post(
+            endpoint,
+            {"status": "APPROVED", "rejection_reason": "Document conforme."},
+            format="json",
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            endpoint,
+            {"status": "EXPIRED", "rejection_reason": "Tentative de rejeu."},
+            format="json",
+        ).status_code
+        == 409
+    )
+    assert VerificationDecision.objects.filter(document_id=item.pk).count() == 1
+
+
+@pytest.mark.django_db
+def test_verification_document_and_history_api_are_private_and_audited(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    user_model = get_user_model()
+    owner = user_model.objects.create_user(
+        email="private-owner@example.com", account_type="TEACHER"
+    )
+    reviewer = user_model.objects.create_user(email="private-reviewer@example.com")
+    reviewer.groups.add(reviewer.groups.model.objects.get(name="VERIFICATION"))
+    item = IdentityVerification.objects.create(
+        user=owner,
+        document_type="PASSPORT",
+        document=SimpleUploadedFile(
+            "passport.pdf", b"%PDF-1.4 test", content_type="application/pdf"
+        ),
+    )
+    VerificationDecision.objects.create(
+        document_type="identity",
+        document_id=item.pk,
+        reviewer=reviewer,
+        from_status="PENDING",
+        to_status="REJECTED",
+        reason="Document illisible.",
+    )
+    client = APIClient()
+    document_endpoint = f"/api/v1/verification/identity/{item.pk}/document/"
+    history_endpoint = f"/api/v1/verification/identity/{item.pk}/history/"
+
+    assert client.get(document_endpoint).status_code == 403
+    client.force_authenticate(reviewer)
+    response = client.get(document_endpoint)
+    assert response.status_code == 200
+    assert response["Cache-Control"] == "private, no-store"
+    assert response["X-Content-Type-Options"] == "nosniff"
+    response.close()
+    history = client.get(history_endpoint)
+    assert history.status_code == 200
+    assert history.data["results"][0]["reason"] == "Document illisible."
+    assert AuditLog.objects.filter(actor=reviewer, action="verification.document_view").exists()
+    assert AuditLog.objects.filter(actor=reviewer, action="verification.history_view").exists()
+
+
+@pytest.mark.django_db
+def test_teacher_can_submit_a_replacement_after_rejection(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    user_model = get_user_model()
+    teacher = user_model.objects.create_user(
+        email="replacement@example.com", account_type="TEACHER"
+    )
+    previous = IdentityVerification.objects.create(
+        user=teacher,
+        document_type="PASSPORT",
+        status=VerificationStatus.REJECTED,
+        rejection_reason="Document illisible.",
+        document=SimpleUploadedFile(
+            "old-passport.pdf", b"%PDF-1.4 test", content_type="application/pdf"
+        ),
+    )
+    client = APIClient()
+    client.force_authenticate(teacher)
+    response = client.post(
+        "/api/v1/teacher/verifications/",
+        {
+            "document_type": "passport",
+            "document": SimpleUploadedFile(
+                "new-passport.pdf", b"%PDF-1.4 test", content_type="application/pdf"
+            ),
+        },
+        format="multipart",
+    )
+
+    assert response.status_code == 201
+    assert response.data["status"] == "pending"
+    assert response.data["id"] != previous.pk
 
 
 @pytest.mark.django_db

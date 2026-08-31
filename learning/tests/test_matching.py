@@ -383,6 +383,7 @@ def test_api_creates_request_and_returns_explained_matches(learning_data):
         email="api-learner@example.com",
         password="Strong-password-2026",
         account_type="LEARNER",
+        email_verified=True,
     )
     create_teacher("api-teacher@example.com", "Grace", subject, level, mode, area, "18000")
     client = APIClient()
@@ -532,3 +533,48 @@ def test_only_owner_can_reject_a_proposal(learning_data):
     assert response.status_code == 403
     proposal.refresh_from_db()
     assert proposal.status == Proposal.Status.SENT
+
+
+@pytest.mark.django_db
+def test_proposal_rejection_and_withdrawal_are_idempotent(learning_data):
+    request, subject, level, mode, area = learning_data
+    teacher = create_teacher(
+        "withdraw-teacher@example.com", "Aline", subject, level, mode, area, "18000"
+    )
+    generate_matches(request)
+    rejected = Proposal.objects.create(
+        learning_request=request,
+        teacher=teacher,
+        amount=18000,
+        message="Proposition a refuser.",
+    )
+    withdrawn = Proposal.objects.create(
+        learning_request=LearningRequest.objects.create(
+            learner=request.learner,
+            subject=subject,
+            level=level,
+            teaching_mode=mode,
+            service_area=area,
+            budget_max=25000,
+            description="Proposition a retirer.",
+        ),
+        teacher=teacher,
+        amount=18000,
+        message="Proposition a retirer.",
+    )
+    client = APIClient()
+
+    client.force_authenticate(request.learner)
+    reject_url = reverse("learning-api:proposal-action", args=(rejected.public_id, "reject"))
+    assert client.post(reject_url).status_code == 200
+    assert client.post(reject_url).status_code == 200
+    client.force_authenticate(teacher.user)
+    withdraw_url = reverse("learning-api:proposal-action", args=(withdrawn.public_id, "withdraw"))
+    assert client.post(withdraw_url).status_code == 200
+    assert client.post(withdraw_url).status_code == 200
+
+    rejected.refresh_from_db()
+    withdrawn.refresh_from_db()
+    assert rejected.status == Proposal.Status.REJECTED
+    assert withdrawn.status == Proposal.Status.WITHDRAWN
+    assert request.events.filter(name=LearningEvent.Name.PROPOSAL_REJECTED).count() == 1

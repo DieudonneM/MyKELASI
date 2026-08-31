@@ -161,6 +161,20 @@ def test_signed_webhook_is_strict_idempotent_and_balanced(confirmed_booking):
     )
     assert tampered_response.status_code == 400
 
+    currency_payload = {**payload, "event_id": "sandbox-event-currency", "currency": "USD"}
+    raw_currency_payload = json.dumps(currency_payload, separators=(",", ":")).encode()
+    currency_response = client.generic(
+        "POST",
+        url,
+        raw_currency_payload,
+        content_type="application/json",
+        HTTP_X_PAYMENT_SIGNATURE=sign_webhook_payload(
+            raw_currency_payload,
+            settings.PAYMENT_WEBHOOK_SECRET,
+        ),
+    )
+    assert currency_response.status_code == 400
+
     signature = sign_webhook_payload(raw_payload, settings.PAYMENT_WEBHOOK_SECRET)
     first_response = client.generic(
         "POST",

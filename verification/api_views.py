@@ -3,6 +3,8 @@ from pathlib import Path
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import transaction
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, status
@@ -24,6 +26,7 @@ from .models import (
     VerificationUpload,
 )
 from .serializers_api import (
+    VerificationDecisionSerializer,
     VerificationDocumentModelSerializer,
     VerificationReviewSerializer,
     VerificationUploadSerializer,
@@ -76,6 +79,7 @@ class TeacherVerificationListCreateAPIView(generics.ListCreateAPIView):
 
 
 class VerificationReviewAPIView(APIView):
+    @transaction.atomic
     def post(self, request, kind, pk):
         if not has_internal_role(request.user, "VERIFICATION"):
             return Response({"detail": "Accès refusé."}, status=status.HTTP_403_FORBIDDEN)
@@ -87,43 +91,52 @@ class VerificationReviewAPIView(APIView):
             return Response({"detail": "Type inconnu."}, status=status.HTTP_404_NOT_FOUND)
         serializer = VerificationReviewSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        item = get_object_or_404(model, pk=pk)
+        item = get_object_or_404(model.objects.select_for_update(), pk=pk)
+        if item.status != VerificationStatus.PENDING:
+            return Response(
+                {"detail": "Ce document a déjà reçu une décision."},
+                status=status.HTTP_409_CONFLICT,
+            )
         new_status = serializer.validated_data["status"]
-        reason = serializer.validated_data.get("rejection_reason", "").strip()
+        reason = serializer.validated_data["rejection_reason"].strip()
         previous_status = item.status
-        item.status = new_status
-        item.rejection_reason = reason
-        item.reviewed_by = request.user
-        item.reviewed_at = timezone.now()
-        item.save(update_fields=("status", "rejection_reason", "reviewed_by", "reviewed_at"))
-        VerificationDecision.objects.create(
-            document_type=kind,
-            document_id=item.pk,
-            reviewer=request.user,
-            from_status=previous_status,
-            to_status=new_status,
-            reason=reason,
-        )
-        record_audit(
-            actor=request.user,
-            action="verification.review",
-            target=item,
-            metadata={"from_status": previous_status, "to_status": new_status},
-        )
-        Notification.objects.create(
-            user=item.user,
-            kind=Notification.Kind.VERIFICATION_UPDATED,
-            title="Vérification mise à jour",
-            body=(
-                "Votre document a été approuvé."
-                if new_status == VerificationStatus.APPROVED
-                else (
-                    "Votre document a été refusé. Consultez le motif et déposez une nouvelle pièce."
-                )
-                if new_status == VerificationStatus.REJECTED
-                else "Le statut de votre document de vérification a changé."
-            ),
-        )
+        with transaction.atomic():
+            item.status = new_status
+            item.rejection_reason = reason
+            item.reviewed_by = request.user
+            item.reviewed_at = timezone.now()
+            item.save(update_fields=("status", "rejection_reason", "reviewed_by", "reviewed_at"))
+            VerificationDecision.objects.create(
+                document_type=kind,
+                document_id=item.pk,
+                reviewer=request.user,
+                from_status=previous_status,
+                to_status=new_status,
+                reason=reason,
+            )
+            record_audit(
+                actor=request.user,
+                action="verification.review",
+                target=item,
+                metadata={"from_status": previous_status, "to_status": new_status},
+            )
+            Notification.objects.create(
+                user=item.user,
+                kind=Notification.Kind.VERIFICATION_UPDATED,
+                title="Vérification mise à jour",
+                body=(
+                    "Votre document a été approuvé."
+                    if new_status == VerificationStatus.APPROVED
+                    else (
+                        "Votre document a été refusé. Consultez le motif et déposez "
+                        "une nouvelle pièce."
+                    )
+                    if new_status == VerificationStatus.REJECTED
+                    else (
+                        "Votre document a expiré. Consultez le motif et déposez une nouvelle pièce."
+                    )
+                ),
+            )
         return Response(VerificationDocumentModelSerializer(item).data)
 
 
@@ -132,16 +145,50 @@ class VerificationQueueAPIView(APIView):
         if not has_internal_role(request.user, "VERIFICATION"):
             return Response({"detail": "Accès refusé."}, status=status.HTTP_403_FORBIDDEN)
         record_audit(actor=request.user, action="verification.queue_view", target=request.user)
-        identity = IdentityVerification.objects.filter(status=VerificationStatus.PENDING)
-        credentials = ProfessionalCredential.objects.filter(status=VerificationStatus.PENDING)
+        identity = IdentityVerification.objects.filter(
+            status=VerificationStatus.PENDING
+        ).select_related("user")
+        credentials = ProfessionalCredential.objects.filter(
+            status=VerificationStatus.PENDING
+        ).select_related("user")
         results = [
-            {"kind": "identity", "id": item.pk, "user_id": item.user_id, "status": item.status}
+            {"kind": "identity", **VerificationDocumentModelSerializer(item).data}
             for item in identity
         ] + [
-            {"kind": "credential", "id": item.pk, "user_id": item.user_id, "status": item.status}
+            {"kind": "credential", **VerificationDocumentModelSerializer(item).data}
             for item in credentials
         ]
         return Response({"count": len(results), "results": results})
+
+
+class VerificationDocumentAPIView(APIView):
+    def get(self, request, kind, pk):
+        if not has_internal_role(request.user, "VERIFICATION"):
+            return Response({"detail": "Accès refusé."}, status=status.HTTP_403_FORBIDDEN)
+        model = {"identity": IdentityVerification, "credential": ProfessionalCredential}.get(kind)
+        if model is None:
+            return Response({"detail": "Type inconnu."}, status=status.HTTP_404_NOT_FOUND)
+        item = get_object_or_404(model, pk=pk)
+        record_audit(actor=request.user, action="verification.document_view", target=item)
+        response = FileResponse(item.document.open("rb"), as_attachment=True)
+        response["Cache-Control"] = "private, no-store"
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
+
+
+class VerificationHistoryAPIView(APIView):
+    def get(self, request, kind, pk):
+        if not has_internal_role(request.user, "VERIFICATION"):
+            return Response({"detail": "Accès refusé."}, status=status.HTTP_403_FORBIDDEN)
+        model = {"identity": IdentityVerification, "credential": ProfessionalCredential}.get(kind)
+        if model is None:
+            return Response({"detail": "Type inconnu."}, status=status.HTTP_404_NOT_FOUND)
+        get_object_or_404(model, pk=pk)
+        history = VerificationDecision.objects.filter(
+            document_type=kind, document_id=pk
+        ).select_related("reviewer")
+        record_audit(actor=request.user, action="verification.history_view", target=request.user)
+        return Response({"results": VerificationDecisionSerializer(history, many=True).data})
 
 
 class TeacherVerificationUploadAPIView(APIView):

@@ -195,6 +195,35 @@ def test_booking_cannot_complete_without_attendance_or_before_end(booking_data):
 
 
 @pytest.mark.django_db
+def test_presence_before_start_and_double_completion_are_rejected(booking_data):
+    learner, teacher, _, proposal = booking_data
+    start_at, end_at = future_slot()
+    booking = create_booking(
+        proposal=proposal,
+        learner=learner,
+        start_at=start_at,
+        end_at=end_at,
+    )
+    booking = transition_booking(booking=booking, actor=teacher, action="confirm")
+
+    with pytest.raises(ValidationError, match="avant le début"):
+        mark_session_presence(booking=booking, actor=learner)
+
+    Booking.objects.filter(pk=booking.pk).update(
+        start_at=timezone.now() - timedelta(hours=2),
+        end_at=timezone.now() - timedelta(hours=1),
+    )
+    booking.refresh_from_db()
+    mark_session_presence(booking=booking, actor=learner)
+    mark_session_presence(booking=booking, actor=teacher)
+    completed = transition_booking(booking=booking, actor=teacher, action="complete")
+
+    with pytest.raises(ValidationError, match="transition n'est pas autorisée"):
+        transition_booking(booking=completed, actor=teacher, action="complete")
+    assert completed.transitions.filter(to_status=Booking.Status.COMPLETED).count() == 1
+
+
+@pytest.mark.django_db
 def test_no_show_can_be_disputed_by_participant(booking_data):
     learner, teacher, _, proposal = booking_data
     start_at, end_at = future_slot()

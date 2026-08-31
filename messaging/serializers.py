@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from learning.models import Proposal
 
-from .models import Conversation, Message, Report
+from .models import Conversation, Message, Report, ReportAction
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -54,3 +54,56 @@ class ReportCreateSerializer(serializers.Serializer):
     )
     reason = serializers.ChoiceField(choices=Report.Reason.choices)
     description = serializers.CharField(max_length=2000, required=False, allow_blank=True)
+
+
+class InternalReportSerializer(serializers.ModelSerializer):
+    target_type = serializers.CharField(source="target_label", read_only=True)
+    assignee_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Report
+        fields = (
+            "public_id",
+            "reason",
+            "description",
+            "status",
+            "priority",
+            "target_type",
+            "created_at",
+            "updated_at",
+            "assignee_name",
+        )
+        read_only_fields = fields
+
+    def get_assignee_name(self, obj):
+        return (
+            None if obj.assignee is None else (obj.assignee.get_full_name() or obj.assignee.email)
+        )
+
+
+class InternalReportActionSerializer(serializers.ModelSerializer):
+    actor_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ReportAction
+        fields = ("action", "note", "created_at", "actor_name")
+        read_only_fields = fields
+
+    def get_actor_name(self, obj):
+        return obj.actor.get_full_name() or obj.actor.email
+
+
+class ReportAssignmentSerializer(serializers.Serializer):
+    assignee_id = serializers.IntegerField(required=False, allow_null=True)
+    priority = serializers.IntegerField(min_value=1, max_value=4)
+
+
+class ReportActionRequestSerializer(serializers.Serializer):
+    action = serializers.ChoiceField(
+        choices=("review", "resolve", "dismiss", "close", "warn", "suspend", "restore")
+    )
+    note = serializers.CharField(max_length=2000, trim_whitespace=True)
+
+
+class ConversationAccessSerializer(serializers.Serializer):
+    minutes = serializers.IntegerField(min_value=1, max_value=60, default=15)
