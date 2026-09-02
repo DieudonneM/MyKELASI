@@ -4,4 +4,4 @@ from .base import env
 DEBUG = env.bool("DJANGO_DEBUG", default=True)
 
 if not ALLOWED_HOSTS:  # noqa: F405
-    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost", "10.226.19.132"]

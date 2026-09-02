@@ -33,8 +33,39 @@ def test_environment_loads_expected_debug_mode(environment, expected_debug):
     assert result.stdout.strip() == expected_debug
 
 
+def test_development_allows_the_configured_mobile_lan_host():
+    project_root = Path(__file__).resolve().parents[2]
+    command = [
+        sys.executable,
+        "-c",
+        "import django; django.setup(); from django.conf import settings; print('10.226.19.132' in settings.ALLOWED_HOSTS)",
+    ]
+    environment_variables = os.environ.copy()
+    environment_variables["DJANGO_SETTINGS_MODULE"] = "app_core.settings"
+    environment_variables["DJANGO_ENV"] = "development"
+    environment_variables["DJANGO_ALLOWED_HOSTS"] = "10.226.19.132"
+    result = subprocess.run(
+        command,
+        cwd=project_root,
+        env=environment_variables,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert result.stdout.strip() == "True"
+
+
 def test_private_media_root_is_not_public_media_root(settings):
     assert settings.PRIVATE_MEDIA_ROOT.resolve() != settings.MEDIA_ROOT.resolve()
+
+
+def test_test_environment_disables_api_rate_limiting(settings):
+    assert settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] == {
+        "auth": None,
+        "messages": None,
+        "reports": None,
+    }
 
 
 @pytest.mark.parametrize("environment", ("staging", "production"))

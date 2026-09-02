@@ -19,11 +19,29 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["featured_teachers"] = (
+        featured_teachers = (
             TeacherProfile.objects.filter(is_public=True, user__is_active=True)
             .select_related("user")
-            .prefetch_related("subjects", "teaching_modes")[:3]
+            .prefetch_related("subjects", "teaching_modes", "service_areas")
         )
+        context["featured_teachers"] = featured_teachers[:3]
+        context["map_teachers"] = [
+            {
+                "name": teacher.user.get_full_name() or "Formateur MyKELASI",
+                "url": teacher.get_absolute_url(),
+                "locations": [
+                    {
+                        "name": area.name,
+                        "latitude": float(area.latitude),
+                        "longitude": float(area.longitude),
+                    }
+                    for area in teacher.service_areas.all()
+                    if area.latitude is not None and area.longitude is not None
+                ],
+            }
+            for teacher in featured_teachers
+        ]
+        context["google_maps_api_key"] = settings.GOOGLE_MAPS_API_KEY
         return context
 
 

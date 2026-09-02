@@ -126,6 +126,7 @@ EMAIL_USE_TLS = env.bool("SMTP_USE_TLS", default=True)
 EMAIL_TIMEOUT = env.int("SMTP_TIMEOUT", default=10)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="MyKELASI <no-reply@mykelasi.cd>")
 CONTACT_EMAIL = env("CONTACT_EMAIL", default="contact@mykelasi.cd")
+GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY", default="")
 
 REST_FRAMEWORK = {
     "COERCE_DECIMAL_TO_STRING": True,

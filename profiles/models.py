@@ -50,6 +50,22 @@ class TeachingMode(models.Model):
 class ServiceArea(models.Model):
     name = models.CharField("commune", max_length=100, unique=True)
     slug = models.SlugField(unique=True)
+    latitude = models.DecimalField(
+        "latitude du centre de zone",
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(-90), MaxValueValidator(90)],
+    )
+    longitude = models.DecimalField(
+        "longitude du centre de zone",
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(-180), MaxValueValidator(180)],
+    )
     is_active = models.BooleanField("actif", default=True)
 
     class Meta:

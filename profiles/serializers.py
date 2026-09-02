@@ -202,6 +202,7 @@ class TeacherSearchSerializer(serializers.ModelSerializer):
     levels = serializers.StringRelatedField(many=True)
     teaching_modes = serializers.StringRelatedField(many=True)
     service_areas = serializers.StringRelatedField(many=True)
+    map_locations = serializers.SerializerMethodField()
     url = serializers.CharField(source="get_absolute_url", read_only=True)
     public_profile = serializers.SerializerMethodField()
 
@@ -219,9 +220,20 @@ class TeacherSearchSerializer(serializers.ModelSerializer):
             "levels",
             "teaching_modes",
             "service_areas",
+            "map_locations",
             "url",
             "public_profile",
         )
+
+    def get_map_locations(self, profile):
+        return [
+            {
+                "name": area.name,
+                "latitude": float(area.latitude) if area.latitude is not None else None,
+                "longitude": float(area.longitude) if area.longitude is not None else None,
+            }
+            for area in profile.service_areas.all()
+        ]
 
     def get_public_profile(self, profile):
         from verification.models import ProfessionalCredential

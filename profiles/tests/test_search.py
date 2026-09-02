@@ -154,6 +154,13 @@ def test_api_search_is_public_filtered_and_paginated():
     assert response.status_code == 200
     assert response.data["count"] == 1
     assert response.data["results"][0]["public_id"] == str(expected.public_id)
+    assert response.data["results"][0]["map_locations"] == [
+        {
+            "name": area.name,
+            "latitude": None,
+            "longitude": None,
+        }
+    ]
 
 
 @pytest.mark.django_db

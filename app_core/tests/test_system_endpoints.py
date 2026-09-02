@@ -53,6 +53,23 @@ def test_home_page_is_public(client):
 
 
 @pytest.mark.django_db
+def test_home_page_presents_learning_categories(client):
+    response = client.get(reverse("home"))
+    content = response.content.decode()
+
+    assert "Explorez par objectif" in content
+    assert "Langues et communication" in content
+    assert "Numérique et création" in content
+
+
+@pytest.mark.django_db
+def test_home_page_requests_location_when_not_already_authorized(client):
+    response = client.get(reverse("home"))
+
+    assert "myKelasiRequestUserLocation" in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_about_page_is_public(client):
     response = client.get(reverse("about"))
 
