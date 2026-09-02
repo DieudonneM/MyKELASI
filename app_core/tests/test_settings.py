@@ -38,7 +38,11 @@ def test_development_allows_the_configured_mobile_lan_host():
     command = [
         sys.executable,
         "-c",
-        "import django; django.setup(); from django.conf import settings; print('10.226.19.132' in settings.ALLOWED_HOSTS)",
+        (
+            "import django; django.setup(); "
+            "from django.conf import settings; "
+            "print('10.226.19.132' in settings.ALLOWED_HOSTS)"
+        ),
     ]
     environment_variables = os.environ.copy()
     environment_variables["DJANGO_SETTINGS_MODULE"] = "app_core.settings"
